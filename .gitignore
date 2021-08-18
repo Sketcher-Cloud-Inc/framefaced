@@ -1,0 +1,17 @@
+## vscode
+/.devcontainer
+/.vscode
+
+## Environment variables
+/.env
+/.env.dev
+
+## Composer
+/vendor/
+/composer.lock
+
+## Temporary files
+/tmp/
+
+## Generated SQL files
+/src/Tests/SQL/

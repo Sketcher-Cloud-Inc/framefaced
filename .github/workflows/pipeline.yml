@@ -1,0 +1,38 @@
+name: Pipeline
+
+on: [ push, pull_request ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download pipeline environment variables
+        run: curl -o ./.env https://gist.githubusercontent.com/SimonRTC/6676d69f8cdc16608f7670b9b47448d1/raw/c640539531697c0f45e73fb5c42bb39b56d0ffd8/gistfile1.txt
+
+      - name: Create required databases
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE example;' -uroot -proot
+
+      - name: Installation of PHP and its required extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0.0'
+          extensions: bcmath, calendar, Core, ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, mysqli, mysqlnd, openssl, pcre, PDO, pdo_mysql, Phar, Reflection, SimpleXML, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
+
+      - name: Install composer dependencies
+        uses: php-actions/composer@v6
+        with:
+          dev: yes
+          version: 2
+          php_version: 8.0
+
+      - name: Initializing sample databases
+        run: |
+          chmod -R 777 ./bin
+          ./bin/console tests --db
+
+      - name: Launch of tests on all endpoints
+        run: ./bin/console tests --debug --CrashOnFailure

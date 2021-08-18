@@ -1,0 +1,12 @@
+<?php
+
+namespace Services;
+
+class {{__SERVICES__}} {
+
+    private \System\ObjectsResolver $ObjectsResolver;
+    
+    public function __construct() {
+        $this->ObjectsResolver = new \System\ObjectsResolver;
+    }
+}

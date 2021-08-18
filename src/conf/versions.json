@@ -1,0 +1,16 @@
+{
+    "latest": {
+        "status": "alpha",
+        "tag": "1.0.0",
+        "req": "v1",
+        "deployment": "master",
+        "about": null
+    },
+    "0.0.1": {
+        "status": "alpha",
+        "tag": "0.0.1",
+        "req": "v0",
+        "deployment": "deprecated",
+        "about": null
+    }
+}

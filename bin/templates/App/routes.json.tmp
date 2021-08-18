@@ -1,0 +1,7 @@
+{
+    "/": {
+        "methods": "GET",
+        "service": "Index@About",
+        "auth": false
+    }
+}

@@ -1,0 +1,9 @@
+#!/usr/bin/env php
+<?php
+
+$path = realpath(__DIR__ . "/..");
+require "{$path}/src/autoload.php";
+require "{$path}/bin/autoload.php";
+
+// Initialize console manager
+new \Console\Commitments($argv);

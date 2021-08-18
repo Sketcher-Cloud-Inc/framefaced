@@ -1,0 +1,17 @@
+{
+    "UNKNOWN_ERROR": {
+        "name": "Unknown Error Type",
+        "message": "This error is not, or no longer referenced. If it persists contact support.",
+        "code": 500
+    },
+    "ADDRESS_NOT_FOUND": {
+        "name": "Address not found",
+        "message": "Cannot access the address you are trying to reach. Check the URI and the method.",
+        "code": 404
+    },
+    "VERSION_CONTROL_FAILURE": {
+        "name": "Error during version control",
+        "message": "The requested version does not match that of the current application. Please ensure that the requested version is still being distributed, if it persists contact support.",
+        "code": 500
+    }
+}

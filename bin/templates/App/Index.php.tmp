@@ -1,0 +1,19 @@
+<?php
+
+namespace App\{{__APP__}};
+
+class Index {
+
+    /**
+     * Undocumented function
+     *
+     * @param \System\Response $Response
+     * @param object $Arguments
+     * @return void
+     */
+    public function About(\System\Response $Response, object $Arguments): void {
+        $Response->Return("Hello World!");
+        return;
+    }
+
+}
