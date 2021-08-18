@@ -14,41 +14,43 @@ class Update {
         private ?\Console\Help &$Helper = null
     ) {
         if (!$this->ShowHelper($this->Helper)) {
-            $tag = ($Commitments->ArgsValues["update"] ?? null);
-            if ($this->GetVersionByTag($tag)) {
-                [ $link, $repo ] = explode("/", $this->framefaced);
-                $path            = __path__ . "/.update/" . basename($repo, ".git");
-                $scanned         = scandir($path);
-                foreach ($scanned as $scan) {
-                    if ($scan == "composer.json" || $scan == ".git" || $scan == ".github" || $scan == "README.md" || $scan == "LICENSE" || $scan == ".gitignore" || $scan == ".env.sample") {
-                        $this->DeleteDirectory("{$path}/$scan");
+            if ($this->Commitments->AskQuestion("\e[4mAre your sure\e[0m you want to \e[34mupdate the framwork\e[39m? (\e[33mThis action can cause major issues\e[39m)")) {
+                $tag = ($Commitments->ArgsValues["update"] ?? null);
+                if ($this->GetVersionByTag($tag)) {
+                    [ $link, $repo ] = explode("/", $this->framefaced);
+                    $path            = __path__ . "/.update/" . basename($repo, ".git");
+                    $scanned         = scandir($path);
+                    foreach ($scanned as $scan) {
+                        if ($scan == "composer.json" || $scan == ".git" || $scan == ".github" || $scan == "README.md" || $scan == "LICENSE" || $scan == ".gitignore" || $scan == ".env.sample") {
+                            $this->DeleteDirectory("{$path}/$scan");
+                        }
+                    }
+
+                    // Delete default configurations
+                    $this->DeleteDirectory("{$path}/src/conf/");
+                    mkdir("{$path}/src/conf", 0777);
+
+                    // Delete default Schematics
+                    $this->DeleteDirectory("{$path}/src/System/Schematics/");
+                    mkdir("{$path}/src/System/Schematics", 0777);
+
+                    // Delete default Services
+                    $this->DeleteDirectory("{$path}/src/Services/");
+                    mkdir("{$path}/src/Services", 0777);
+
+                    // Delete default App
+                    $this->DeleteDirectory("{$path}/src/App/");
+                    mkdir("{$path}/src/App", 0777);
+
+                    $applied = $this->ExecuteShell("./bin/scripts/update/apply.sh", [ basename(explode("/", $this->framefaced)[1] ?? "framefaced.git", ".git") ]);
+                    if ($applied) {
+                        $this->Commitments->Display("[\e[32mOK\e[39m] Framework has been updated.");
+                        $this->Commitments->Display("Deleting update temporary files...");
+                        usleep(200);
+                        $this->DeleteDirectory("./.update");
                     }
                 }
-
-                // Delete default configurations
-                $this->DeleteDirectory("{$path}/src/conf/");
-                mkdir("{$path}/src/conf", 0777);
-
-                // Delete default Schematics
-                $this->DeleteDirectory("{$path}/src/System/Schematics/");
-                mkdir("{$path}/src/System/Schematics", 0777);
-
-                // Delete default Services
-                $this->DeleteDirectory("{$path}/src/Services/");
-                mkdir("{$path}/src/Services", 0777);
-
-                // Delete default App
-                $this->DeleteDirectory("{$path}/src/App/");
-                mkdir("{$path}/src/App", 0777);
-
-                $applied = $this->ExecuteShell("./bin/scripts/update/apply.sh", [ basename(explode("/", $this->framefaced)[1] ?? "framefaced.git", ".git") ]);
-                if ($applied) {
-                    $this->Commitments->Display("[\e[32mOK\e[39m] Framework has been updated.");
-                    $this->Commitments->Display("Deleting update temporary files...");
-                    usleep(200);
-                    $this->DeleteDirectory("./.update");
-                }
-           }
+            }
         }
         return;
     }
