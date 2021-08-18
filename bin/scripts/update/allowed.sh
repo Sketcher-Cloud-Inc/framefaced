@@ -2,5 +2,5 @@
 if [[ -z $(git status -s) ]]; then
     echo "true";
 else
-    echo "true"
+    echo "false"
 fi

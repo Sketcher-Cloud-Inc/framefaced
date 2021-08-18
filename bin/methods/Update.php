@@ -43,8 +43,13 @@ class Update {
 
                 [ $link, $repo ]    = explode("/", $this->framefaced);
                 $repo               = basename($repo, ".git");
-                $this->ExecuteShell("./bin/scripts/update/apply.sh", [ basename(explode("/", $this->framefaced)[1] ?? "framefaced.git", ".git"), ($tag? $tag: "latest") ]);
-                $this->DeleteDirectory("./.update");
+                $applied = $this->ExecuteShell("./bin/scripts/update/apply.sh", [ basename(explode("/", $this->framefaced)[1] ?? "framefaced.git", ".git"), ($tag? $tag: "latest") ]);
+                if ($applied) {
+                    $this->Commitments->Display("[\e[32mOK\e[39m] Framework has been updated.");
+                    $this->Commitments->Display("Deleting update temporary files...");
+                    usleep(200);
+                    $this->DeleteDirectory("./.update");
+                }
            }
         }
         return;
@@ -60,7 +65,7 @@ class Update {
     private function GetVersionByTag(?string $tag = null): bool {
         [ $link, $repo ]    = explode("/", $this->framefaced);
         $repo               = basename($repo, ".git");
-        $allowed = $this->ExecuteShell("./bin/scripts/update/allowed.sh", [ $repo, $this->framefaced ]);
+        $allowed = $this->ExecuteShell("./bin/scripts/update/allowed.sh");
         if ($allowed) {
             (!is_dir(__path__ . "/.git_temp/")? mkdir(__path__ . "/.git_temp/", 0777): null);
             (!is_dir(__path__ . "/.update/")? mkdir(__path__ . "/.update/", 0777): null);
@@ -71,9 +76,9 @@ class Update {
                     return true;
                 }
             }
-            echo "Failed!";
+            $this->Commitments->Display("[\e[91mERROR\e[39m] Unable to run upgrade scripts. Check the logs above.");
         } else {
-            echo "Not allowed!";
+            $this->Commitments->Display("[\e[33mWARNING\e[39m] Framework update is not allowed yet. You need to commit all your changes before start a update.");
         }
         return false;
     }
