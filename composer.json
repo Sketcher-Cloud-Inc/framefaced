@@ -13,8 +13,7 @@
             "System\\": "src/System/Controllers/",
             "System\\Schematics\\": "src/System/Schematics/",
             "Services\\": "src/Services/",
-            "App\\Default\\": "src/App/Default/",
-            "App\\HelloWorld\\": "src/App/HelloWorld/"
+            "App\\Default\\": "src/App/Default/"
         }
     },
     "require": {
