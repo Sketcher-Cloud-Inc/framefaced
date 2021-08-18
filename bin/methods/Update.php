@@ -41,9 +41,7 @@ class Update {
                 $this->DeleteDirectory("{$path}/src/App/");
                 mkdir("{$path}/src/App", 0777);
 
-                [ $link, $repo ]    = explode("/", $this->framefaced);
-                $repo               = basename($repo, ".git");
-                $applied = $this->ExecuteShell("./bin/scripts/update/apply.sh", [ basename(explode("/", $this->framefaced)[1] ?? "framefaced.git", ".git"), ($tag? $tag: "latest") ]);
+                $applied = $this->ExecuteShell("./bin/scripts/update/apply.sh", [ basename(explode("/", $this->framefaced)[1] ?? "framefaced.git", ".git") ]);
                 if ($applied) {
                     $this->Commitments->Display("[\e[32mOK\e[39m] Framework has been updated.");
                     $this->Commitments->Display("Deleting update temporary files...");
