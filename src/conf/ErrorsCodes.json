@@ -13,5 +13,10 @@
         "name": "Error during version control",
         "message": "The requested version does not match that of the current application. Please ensure that the requested version is still being distributed, if it persists contact support.",
         "code": 500
+    },
+    "ACCESS_DENIED": {
+        "name": "Access denied",
+        "message": "This call requires authentication. Please use valid token and retry.",
+        "code": 400
     }
 }
