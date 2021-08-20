@@ -144,7 +144,10 @@ class Providers {
     private function ShowHelper(?\Console\Help &$Helper): bool {
         if (!empty($Helper)) {
             $this->Helper->AddHelper("Manage your providers", strtolower(str_replace(__NAMESPACE__ . "\\", '', __CLASS__)), [
-
+                "Use \"Component management\" for create a new provider",
+                "Control provider methods implementations with \"control\" (ex. control MyProviderName)",
+                "Create a new provider class with \"create\" (ex. create MyProviderName --class MyNewClassName)",
+                "Add a new method on provider interface with \"add\" (ex. add MyProviderName --method MyNewMethodName)"
             ]);
             return true;
         }
