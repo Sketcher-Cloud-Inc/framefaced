@@ -4,22 +4,23 @@ namespace System;
 
 class Authentications {
 
+    public ?object $Rdy;
     private \System\Databases $dbengine;
     private bool $Allowed = false;
 
     public function __construct(
         private object $Routed,
-        public string|object $Token = "unk"
+        private ?string $Token = null
     ) {
         if (!$Routed->auth) {
             $this->Allowed = true;
-        } elseif ($Token !== "unk") {
+        } elseif (!empty($Token)) {
             $this->dbengine = new \System\Databases;
-            $this->Token    = $this->dbengine->Query($_ENV["AUTH_TOKEN_DBNAME"], "SELECT * FROM `{$_ENV["AUTH_TOKEN_TABLE_NAME"]}`;", [], [
+            $this->Rdy      = $this->dbengine->Query($_ENV["AUTH_TOKEN_DBNAME"], "SELECT * FROM `{$_ENV["AUTH_TOKEN_TABLE_NAME"]}`;", [], [
                 "token" => $this->Token
             ])[0] ?? null;
-            if (!empty($this->Token)) {
-                if (empty($this->Token->permissions) || $this->CheckPermissions()) {
+            if (!empty($this->Rdy)) {
+                if (empty($this->Rdy->permissions) || $this->CheckPermissions()) {
                     $this->Allowed = true;
                 }
             }
@@ -41,7 +42,7 @@ class Authentications {
      * @return bool
      */
     private function CheckPermissions(): bool {
-        if (in_array("{$_SERVER["REQUEST_METHOD"]}@{$this->Routed->Pattern}", $this->Token->permissions) || in_array("*@{$this->Routed->Pattern}", $this->Token->permissions)) {
+        if (in_array("{$_SERVER["REQUEST_METHOD"]}@{$this->Routed->Pattern}", $this->Rdy->permissions) || in_array("*@{$this->Routed->Pattern}", $this->Rdy->permissions)) {
             return true;
         }
         return false;

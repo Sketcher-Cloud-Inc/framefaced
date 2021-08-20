@@ -6,7 +6,7 @@ class main extends \System\Routing {
     private ?object $routes;
     private string $namespace = __NAMESPACE__;
     private \System\Response $Response;
-    private string|object $Auth;
+    private ?object $Auth;
     public function __construct(
         private string $Version,
         private string $method,
@@ -19,7 +19,7 @@ class main extends \System\Routing {
         parent::__construct($this->method, $this->uri, $this->routes, $this->PostedDatas, $_ENV["DEFAULT_ACCESS_RULE"]);
         if (!empty($this->Routed)) {
             $Authentications    = new \System\Authentications($this->Routed, $headers["xAuth-Token"] ?? null);
-            $this->Auth         = $Authentications->Token;
+            $this->Auth         = $Authentications?->Rdy ?? null;
             if  ($Authentications->isAllowed()) {
                 [$Class, $Function] = explode("@", $this->Routed->service);
                 $Class              = "\\{$this->namespace}\\{$Class}";
@@ -39,5 +39,4 @@ class main extends \System\Routing {
             (new \System\Response(__CLASS__, __current_version__))->Throw("ADDRESS_NOT_FOUND");
         }
     }
-
 }
