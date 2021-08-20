@@ -48,7 +48,7 @@ class Components {
         $TemplateFiles  = (is_dir(__path__ . "/bin/templates/{$type}")? scandir(__path__ . "/bin/templates/{$type}"): []);
         if (!empty($TemplateFiles)) {
             foreach ($TemplateFiles as $TemplateFile) {
-                if ($TemplateFile !== "." && $TemplateFile !== "..") {
+                if ($TemplateFile !== "." && $TemplateFile !== ".." && !is_dir(__path__ . "/bin/templates/{$type}/{$TemplateFile}")) {
                     $FileName   = basename(__path__ . "/bin/templates/{$type}/{$TemplateFile}", ".tmp");
                     $Singled    = ($FileName === '{{__' . strtoupper($type) . '__}}.php'? true: false);
                     $output     = ($Singled? __path__ . "/src/{$type}/" . str_replace('{{__' . strtoupper($type) . '__}}', $name, $FileName): __path__ . "/src/{$type}/{$name}/{$FileName}");
