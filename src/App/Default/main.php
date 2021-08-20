@@ -18,7 +18,7 @@ class main extends \System\Routing {
         if (!empty($this->Routed)) {
             [$Class, $Function] = explode("@", $this->Routed->service);
             $Class              = "\\{$this->namespace}\\{$Class}";
-            $this->Response     = new \System\Response($this->Routed, $this->Version);
+            $this->Response     = new \System\Response(__CLASS__, $this->Version);
             try {
                 $Class = new $Class();
                 $Class->{$Function}($this->Response, $this->Routed->arguments);

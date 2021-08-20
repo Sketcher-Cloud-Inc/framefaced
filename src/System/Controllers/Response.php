@@ -7,7 +7,7 @@ class Response {
     private string $RespType = "JSON";
 
     public function __construct(
-        private ?object $Routed,
+        private string $Class,
         private ?string $Version,
         private bool $TestMode = false,
         private ?\Tests\TestInstance $TestInstance = null
@@ -44,8 +44,12 @@ class Response {
     public function Throw(string $ErrorCode): void {
         $uuid       = (\Symfony\Component\Uid\Uuid::v4())->toRfc4122();
         $ErrorTypes = json_decode(file_get_contents(__path__ . "/src/conf/ErrorsCodes.json"), false) ?? null;
-        $ErrorType              = (isset($ErrorTypes->{$ErrorCode}) && !empty($ErrorTypes->{$ErrorCode})? $ErrorTypes->{$ErrorCode}: $ErrorTypes->UNKNOWN_ERROR);
-        $ErrorType->codename    = $ErrorCode;
+        $ErrorType  = (isset($ErrorTypes->{$ErrorCode}) && !empty($ErrorTypes->{$ErrorCode})? $ErrorTypes->{$ErrorCode}: null);
+        if (empty($ErrorType)) {
+            $_ErrorTypes = json_decode(file_get_contents(__path__ . "/src/App/" . explode("\\", $this->Class)[1] . "/ErrorsCodes.json"), false) ?? null;
+            $ErrorType  = (isset($_ErrorTypes->{$ErrorCode}) && !empty($_ErrorTypes->{$ErrorCode})? $_ErrorTypes->{$ErrorCode}: $ErrorTypes->UNKNOWN_ERROR);
+        }
+        $ErrorType->codename = $ErrorCode;
         if (!$this->TestMode) {
             (new \System\Logs)->ThrowTyped($uuid, 2, $ErrorType);
             $this->ShowResponse($this->ParseMixedDatas((object) [
