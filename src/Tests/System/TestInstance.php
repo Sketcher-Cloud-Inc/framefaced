@@ -19,9 +19,13 @@ class TestInstance {
      * @return bool
      */
     public function IsExpectedContentPresent() {
-        $this->DataExpected = trim($this->RetrieveResponseIntent(), "\\");
-        if (strcasecmp($this->DataExpected, $this->DataType) == 0 || $this->DataExpected === "void" && $this->DataType === "NULL") {
-            return true;
+        $DatasExpected      = $this->RetrieveResponseIntent();
+        $this->DataExpected = $DatasExpected;
+        $DatasExpected      = explode("|", $DatasExpected);
+        foreach ($DatasExpected as $DataExpected) {
+            if (strcasecmp($DataExpected, $this->DataType) == 0 || $DataExpected === "void" && $this->DataType === "NULL") {
+                return true;
+            }
         }
         return false;
     }
