@@ -1,0 +1,7 @@
+<?php
+
+namespace System\Providers\{{__PROVIDERS__}};
+
+class {{__MODELS__}} {
+    
+}
