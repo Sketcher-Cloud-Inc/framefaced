@@ -34,6 +34,10 @@ class Update {
                     $this->DeleteDirectory("{$path}/src/System/Schematics/");
                     mkdir("{$path}/src/System/Schematics", 0777);
 
+                    // Delete default providers
+                    $this->DeleteDirectory("{$path}/src/Providers/");
+                    mkdir("{$path}/src/Providers", 0777);
+
                     // Delete default Services
                     $this->DeleteDirectory("{$path}/src/Services/");
                     mkdir("{$path}/src/Services", 0777);
