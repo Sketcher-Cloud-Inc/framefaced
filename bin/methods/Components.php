@@ -64,7 +64,7 @@ class Components {
                     }
                 }
             }
-            $this->Commitments->Display("Component has been created. Please note, some components require a inclusion in \"composer.json\".");
+            $this->Commitments->Display("Component has been created.");
             return;
         }
         $this->Commitments->Display("Missing templates files for \"{$type}\" !");

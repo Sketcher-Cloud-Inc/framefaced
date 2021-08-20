@@ -14,7 +14,7 @@
             "System\\Schematics\\": "src/System/Schematics/",
             "System\\Providers\\": "src/Providers/",
             "Services\\": "src/Services/",
-            "App\\Default\\": "src/App/Default/"
+            "App\\": "src/App/"
         }
     },
     "require": {
