@@ -34,5 +34,5 @@ jobs:
           chmod -R 777 ./bin
           ./bin/console tests --db
 
-      - name: Launch of tests on all endpoints
+      - name: Launch of tests on Providers and Endpoints (Apps)
         run: ./bin/console tests --debug --CrashOnFailure

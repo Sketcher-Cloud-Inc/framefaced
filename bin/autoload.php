@@ -1,7 +1,9 @@
 <?php
 
 spl_autoload_register(function ($ClassName) {
-    [ $namespace, $ClassName ] = explode("\\", $ClassName);
+    $namespace = explode("\\", $ClassName);
+    $ClassName = $namespace[1] ?? null;
+    $namespace = $namespace[0] ?? null;
     if ($namespace === "Console") {
         $path = realpath(__path__ . "/bin/methods/{$ClassName}.php");
         if (file_exists($path)) {

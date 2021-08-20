@@ -41,7 +41,7 @@ class Falsifications {
     private function ShowHelper(?\Console\Help &$Helper): bool {
         if (!empty($Helper)) {
             $this->Helper->AddHelper("", strtolower(str_replace(__NAMESPACE__ . "\\", '', __CLASS__)), [
-
+                "Use --entries to specify how many fake data you want generate."
             ]);
             return true;
         }

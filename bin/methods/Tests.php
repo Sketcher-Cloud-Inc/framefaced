@@ -25,7 +25,29 @@ class Tests {
                 $endpoint   = $this->Commitments->ArgsValues["--endpoint"] ?? null;
                 $function   = (!empty($endpoint)? $this->Commitments->ArgsValues["--function"] ?? null: null);
                 $crash      = (in_array("--CrashOnFailure", $this->Commitments->arguments)? true: false);
+                echo "- - - - - - Providers - - - - -\n";
+                $this->TriggeringProvidersTests($crash);
+                echo "- - - - - - Endpoints - - - - -\n";
+                echo "- - - - - - - - - - - - - - - -\n";
                 $this->TriggeringTests($endpoint, $function, (in_array("--debug", $this->Commitments->arguments)? true: false), (in_array("--watch", $this->Commitments->arguments)? true: false), $crash);
+            }
+        }
+        return;
+    }
+
+    /**
+     * Start providers method control
+     * 
+     * @param bool $crash
+     * 
+     * @return void
+     */
+    private function TriggeringProvidersTests(bool $crash): void {
+        $scanned = scandir(__path__ . "/src/Providers");
+        foreach ($scanned as $scan) {
+            if ($scan !== "." && $scan !== ".." && !is_dir(__path__ . "/src/Providers/{$scan}")) {
+                $scan = basename($scan, ".php");
+                echo shell_exec("php ./bin/console providers control {$scan}" . ($crash? " --CrashOnFailure": null));
             }
         }
         return;
