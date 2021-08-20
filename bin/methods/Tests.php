@@ -76,7 +76,7 @@ class Tests {
                             if ($_function === null || strcasecmp($Function, $_function) == 0) {
                                 $Class          = "\\App\\{$App}\\{$Class}";
                                 $TestInstance   = new \Tests\TestInstance($Class, $Function);
-                                $Response       = new \System\Response($route, __current_version__, true, $TestInstance);
+                                $Response       = new \System\Response($Class, __current_version__, true, $TestInstance);
                                 try {
                                     $_Class = new $Class();
                                     $_Class->{$Function}($Response, $TestInstance->GetRequiredArgs());

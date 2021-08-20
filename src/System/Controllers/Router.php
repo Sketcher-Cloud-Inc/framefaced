@@ -44,7 +44,7 @@ class Router {
                 }
             }
         } else {
-            (new \System\Response(null, __current_version__))->Throw("ADDRESS_NOT_FOUND");
+            (new \System\Response("\\App\\Default\\main", __current_version__))->Throw("ADDRESS_NOT_FOUND");
         }
         return;
     }

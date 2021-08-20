@@ -22,11 +22,12 @@ class Databases {
      * @param  array $parameters
      * @return void
      */
-    public function Query(string $dbname, string $request, array $parameters = []): ?array {
+    public function Query(string $dbname, string $request, array $parameters = [], array $selectors = []): ?array {
         $db = &$this->databases->{$dbname} ?? null;
         if (!empty($db)) {
             $this->dbinit($dbname);
             if (!empty($db->obj)) {
+                $this->AddSelectorsOnRequest($request, $parameters, $selectors);
                 $resp = $db->obj->prepare($request);
                 $resp->execute($parameters);
                 $datas = $resp->fetchAll(\PDO::FETCH_ASSOC);
@@ -61,6 +62,51 @@ class Databases {
             }
             return (!isset($e)? $resp: $e);
         }
+    }
+
+    /**
+     * Generate valid selectors from request parameter parsing
+     * 
+     * @param array $selectors
+     * 
+     * @return array
+     */
+    public function GenerateSelectors(array $selectors): array {
+        foreach ($selectors as $i => $selector) {
+            if ($selector === null) {
+                unset($selectors[$i]);
+            }
+        }
+        return $selectors;
+    }
+
+    /**
+     * Add selector (where) on SQL request
+     * 
+     * @param string $request
+     * @param array $parameters
+     * @param array $selectors
+     * 
+     * @return void
+     */
+    private function AddSelectorsOnRequest(string &$request, array &$parameters, array $selectors): void {
+        $matched = preg_match('/%selectors%/', $request);
+        $request = trim($request, ";");
+        if (!empty($selectors) || $matched) {
+            $cond   = null;
+            $i      = 1;
+            $keys   = array_keys($selectors);
+            foreach ($selectors as $keyname => $value) {
+                $name   = "SELECTOR_ENGINE__" . strtoupper($keyname);
+                $cond   .= "`{$keyname}` " . ($value !== NULL? "= :{$name}": "IS NULL") . (isset($keys[$i])? " AND ": null);
+                if ($value !== NULL) {
+                    $parameters[$name] = $value;
+                }
+                $i++;
+            }
+            $request = ($matched? str_replace("%selectors%", $cond, $request): "{$request} WHERE {$cond};");
+        }
+        return;
     }
     
     /**
