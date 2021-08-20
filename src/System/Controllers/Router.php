@@ -9,6 +9,7 @@ class Router {
     private string $Version;
     private string $InputFormat = "JSON";
     private mixed $InputData;
+    private array $headers;
 
     public function __construct() {
         $this->Versions         = json_decode(file_get_contents(realpath(__path__ . "/src/conf/versions.json")), false) ?? (object) [];
@@ -17,6 +18,7 @@ class Router {
         $this->Version          = $Version;
         $Explore                = $this->ExplorePattern($RequestUri);
         $this->InputData        = $this->ParseInputDatas();
+        $this->headers          = getallheaders();
         $this->LoadExploredClass($Explore);
     }
         
@@ -35,7 +37,8 @@ class Router {
                     $this->Version,
                     $this->method,
                     $Explore->uri,
-                    $this->InputData
+                    $this->InputData,
+                    $this->headers
                 );
             } catch (\Throwable $e) {
                 (new \System\Logs)->Throw(null, 1, $e);

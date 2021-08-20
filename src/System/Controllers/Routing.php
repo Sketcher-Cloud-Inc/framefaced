@@ -11,14 +11,17 @@ class Routing {
         private string $method,
         private string $uri,
         private object $routes,
-        private mixed $PostedDatas = null
+        private mixed $PostedDatas = null,
+        private bool $DefaultAccessRule
     ){
         $this->Arguments = $this->CreateArgumentsStructure();
         foreach ($this->routes as $Pattern => $Route) {
             if (in_array($this->method, explode("|", $Route->methods))) {
                 if ($this->PatternMatched($Pattern)) {
-                    $this->Routed = $Route;
-                    $this->Routed->arguments = $this->Arguments;
+                    $this->Routed               = $Route;
+                    $this->Routed->Pattern      = $Pattern;
+                    $this->Routed->auth         = (isset($this->Routed->auth)? $this->Routed->auth: $DefaultAccessRule);
+                    $this->Routed->arguments    = $this->Arguments;
                 }
             }
         }
