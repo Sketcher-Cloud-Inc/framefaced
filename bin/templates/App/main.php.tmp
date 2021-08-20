@@ -28,7 +28,7 @@ class main extends \System\Routing {
                 $this->Response->Throwable($uuid, $e);
             }
         } else {
-            (new \System\Response(null, __current_version__))->Throw("ADDRESS_NOT_FOUND");
+            (new \System\Response(__CLASS__, __current_version__))->Throw("ADDRESS_NOT_FOUND");
         }
     }
 
