@@ -217,12 +217,8 @@ class Falsifications {
                         foreach ($SqlObjects as $SqlObject) {
                             if (trim($SqlObject["class"], '\\') === trim($class, '\\')) {
                                 $set = true;
-                                if (!empty($keyname)) {
-                                    $Ref = $SqlObject["generated"][$i][$keyname] ?? null;
-                                } else {
-                                    $Ref = json_encode($SqlObject["generated"][$i]);
-                                    $Ref = (in_array("multi-array", explode("|", $values))? "[{$Ref}]": $Ref);
-                                }
+                                $Ref = (!empty($keyname)? ($SqlObject["generated"][$i][$keyname] ?? null): json_encode($SqlObject["generated"][$i]));
+                                $Ref = (in_array("multi-array", explode("|", $values))? (!empty($keyname)? "[\"{$Ref}\"]": "[{$Ref}]"): $Ref);
                                 $Reference[$n] = $Ref;
                                 break;
                             }
