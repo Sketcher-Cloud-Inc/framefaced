@@ -87,6 +87,7 @@ class Falsifications {
                     $keys   = array_keys($ObjectDatas);
                     foreach ($ObjectDatas as $ObjectData) {
                         $ObjectData = (is_bool($ObjectData)? (int) $ObjectData: $ObjectData);
+                        $ObjectData = (!empty($ObjectData) || $ObjectData === 0? base64_encode($ObjectData): null);
                         $SQL .= (!empty($ObjectData) || $ObjectData === 0? "\"{$ObjectData}\"": "NULL") . (count($keys) !== ($n + 1)? ", ": ")");
                         $n++;
                     }
@@ -145,7 +146,7 @@ class Falsifications {
                         }
                     } elseif ($type === "reference") {
                         for ($i = 0; $i <= $this->nbIndexes; $i++) {
-                            $ReferencesCatalog[$ObjName][$i][$PropertyName] = $func;
+                            $ReferencesCatalog[$ObjName][$i][$PropertyName] = [$Object["properties"][$PropertyName]["values"], $func];
                             $Object["generated"][$i][$PropertyName] = &$ReferencesCatalog[$ObjName][$i][$PropertyName];
                         }
                     } else {
@@ -185,6 +186,7 @@ class Falsifications {
                 if (preg_match_all('/@(.*) "(.*)"\r\n/', $phpDoc, $match) || preg_match_all('/@(.*) "(.*)"\n/', $phpDoc, $match) || preg_match_all('/@(.*) "(.*)"\r/', $phpDoc, $match) || preg_match_all('/@(.*) "(.*)"\n\r/', $phpDoc, $match)) {
                     $keys   = $match[1] ?? [];
                     $values = $match[2] ?? [];
+                    $annotations[$index]["properties"][$Property->getName()]["values"] = $Property->getDefaultValue();
                     foreach ($keys as $i => $key) {
                         $annotations[$index]["properties"][$Property->getName()][$key] = ($values[$i] ?? null);
                     }
@@ -205,7 +207,8 @@ class Falsifications {
     private function ParseReferencesCatalog(array $SqlObjects, array &$ReferencesCatalog): void {
         foreach ($ReferencesCatalog as &$References) {
             foreach ($References as $i => &$Reference) {
-                foreach ($Reference as &$Ref) {
+                foreach ($Reference as $n => $Ref) {
+                    [ $values, $Ref ] = $Ref;
                     $class      = explode("->", $Ref);
                     $keyname    = $class[1] ?? null;
                     $class      = $class[0] ?? null;
@@ -214,7 +217,9 @@ class Falsifications {
                         foreach ($SqlObjects as $SqlObject) {
                             if (trim($SqlObject["class"], '\\') === trim($class, '\\')) {
                                 $set = true;
-                                $Ref = (!empty($keyname)? ($SqlObject["generated"][$i][$keyname] ?? null): (str_replace("\"", "\\\"", json_encode($SqlObject["generated"][$i])) ?? null));
+                                $Ref = (!empty($keyname)? ($SqlObject["generated"][$i][$keyname] ?? null): json_encode($SqlObject["generated"][$i]));
+                                $Ref = (in_array("multi-array", explode("|", $values))? (!empty($keyname)? "[\"{$Ref}\"]": "[{$Ref}]"): $Ref);
+                                $Reference[$n] = $Ref;
                                 break;
                             }
                         }
