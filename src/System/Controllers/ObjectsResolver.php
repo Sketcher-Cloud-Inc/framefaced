@@ -10,7 +10,7 @@ class ObjectsResolver {
         $this->convert  = [
             "int"           => "integer",
             "bigint"        => "integer",
-            "tinyint"       => "bool",
+            "tinyint"       => "boolean",
             "float"         => "float",
             "double"        => "double",
             "array"         => "array",
@@ -47,7 +47,7 @@ class ObjectsResolver {
                     $NewProperty    = $this->NewResolve($PropertyType, (!empty($PropertyData)? (gettype($PropertyData) === "string"? json_decode($PropertyData, false): $PropertyData): []));
                     $PropertyType   = str_replace("Schematics", "DynamicSchematics", $PropertyType);
                 }
-                $dynClass->{$PropertyName} = (gettype($NewProperty) === $PropertyType || is_object($NewProperty) && $PropertyType === get_class($NewProperty)? (!empty($NewProperty)? $NewProperty: null): null);
+                $dynClass->{$PropertyName} = (gettype($NewProperty) === $PropertyType || is_object($NewProperty) && $PropertyType === get_class($NewProperty)? (!empty($NewProperty) || $NewProperty === false? $NewProperty: null): null);
             }
             return $dynClass;
         }
