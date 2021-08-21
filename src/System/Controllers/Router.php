@@ -88,7 +88,7 @@ class Router {
      */
     private function GetRealRequestUri(string $RequestUri): array {
         $parse      = explode("/", trim(trim($RequestUri), "/"));
-        preg_match('/v(.*)/', $parse[0], $match);
+        preg_match('/\/v(.*)/', "/$parse[0]", $match);
         $Version    = (!empty($match[0])? $match[0]: $this->Versions->latest->req);
         $RequestUri = str_replace("/{$Version}", '', $RequestUri);
         return [$Version, $RequestUri];
