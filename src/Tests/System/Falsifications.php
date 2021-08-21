@@ -87,6 +87,7 @@ class Falsifications {
                     $keys   = array_keys($ObjectDatas);
                     foreach ($ObjectDatas as $ObjectData) {
                         $ObjectData = (is_bool($ObjectData)? (int) $ObjectData: $ObjectData);
+                        $ObjectData = (!empty($ObjectData) || $ObjectData === 0? base64_encode($ObjectData): null);
                         $SQL .= (!empty($ObjectData) || $ObjectData === 0? "\"{$ObjectData}\"": "NULL") . (count($keys) !== ($n + 1)? ", ": ")");
                         $n++;
                     }
@@ -216,10 +217,13 @@ class Falsifications {
                         foreach ($SqlObjects as $SqlObject) {
                             if (trim($SqlObject["class"], '\\') === trim($class, '\\')) {
                                 $set = true;
-                                $Ref = (!empty($keyname)? ($SqlObject["generated"][$i][$keyname] ?? null): $SqlObject["generated"][$i]);
-                                $Ref = (empty($keyname)? json_encode($Ref): $Ref);
-                                $Ref = (empty($keyname)? (in_array("multi-array", explode("|", $values))? "[{$Ref}]": $Ref): $Ref);
-                                $Reference[$n] = (empty($keyname)? str_replace("\"", "\\\"", $Ref): $Ref);
+                                if (!empty($keyname)) {
+                                    $Ref = $SqlObject["generated"][$i][$keyname] ?? null;
+                                } else {
+                                    $Ref = json_encode($SqlObject["generated"][$i]);
+                                    $Ref = (in_array("multi-array", explode("|", $values))? "[{$Ref}]": $Ref);
+                                }
+                                $Reference[$n] = $Ref;
                                 break;
                             }
                         }

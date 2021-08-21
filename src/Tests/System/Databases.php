@@ -64,7 +64,8 @@ class Databases {
         foreach ($DatabasesList as $db) {
             $path = __path__ . "/src/Tests/SQL/{$db["dbname"]}/{$db["table"]}.sql";
             if (file_exists($path)) {
-                $resp = $this->dbengine->Exec($db["dbname"], file_get_contents($path));
+                [$request, $parameters] = $this->ParseSqlFile($path);
+                $resp = $this->dbengine->Exec($db["dbname"], $request, $parameters);
                 if (is_object($resp) && get_class($resp) === "PDOException") {
                     echo "\e[31m  >>> [ERROR] Unable to insert datas in \e[39m\e[34m\"{$db["table"]}\"\e[31m on \e[39m\e[34m\"{$db["dbname"]}\"\e[39m, database engine return: \e[33m" . $resp->getMessage() . "\e[39m\n";
                 } else {
@@ -73,6 +74,41 @@ class Databases {
             }
         }
         return;
+    }
+
+    /**
+     * Parse SQL file for dbengine
+     * 
+     * @param string $path
+     * 
+     * @return array
+     */
+    private function ParseSqlFile(string $path): array {
+        $SQL        = file_get_contents($path);
+        $parameters = [];
+        [ $structure, $values ] = explode(" VALUES ", $SQL);
+        $request    = "{$structure} VALUES ";
+        $values = trim($values ?? null, ";");
+        $values = explode("),", $values);
+
+        preg_match('/\((.*)\)/', $structure, $structures);
+        $structures = explode(",", $structures[1] ?? null);
+        foreach ($structures as &$structure) {
+            $structure = trim(trim($structure), "`");
+        }
+
+        foreach ($values as $i => $value) {
+            $value      = trim(trim($value, "( )"));
+            $columns    = explode(",", $value);
+            $request .= ($i > 0? ", ": null) . "(";
+            foreach ($columns as $n => $column) {
+                $column = trim(trim($column), "\"");
+                $column = ($column !== "NULL"? base64_decode($column): null);
+                $request .= ":datas_{$i}_{$structures[$n]}" . ($n < (count($columns) - 1)? ", ": ")");
+                $parameters["datas_{$i}_{$structures[$n]}"] = $column;
+            }
+        }
+        return [$request, $parameters];
     }
 
     /**
