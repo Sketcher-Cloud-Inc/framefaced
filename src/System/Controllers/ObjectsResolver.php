@@ -12,6 +12,7 @@ class ObjectsResolver {
             "bigint"        => "integer",
             "tinyint"       => "bool",
             "float"         => "float",
+            "double"        => "double",
             "array"         => "array",
             "multi-array"   => "array"
         ];
