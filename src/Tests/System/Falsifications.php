@@ -22,7 +22,7 @@ class Falsifications {
                 return $args[rand(0, (count($args) - 1))];
             },
             "RandomArray" => function($args) {
-                return str_replace("\"", "\\\"", json_encode($args));
+                return json_encode($args);
             },
             "RandomNumber" => function($args) {
                 return (int) round(rand($args[0], $args[1]), (isset($args[2]) && !empty($args[2])? $args[2]: 1));
