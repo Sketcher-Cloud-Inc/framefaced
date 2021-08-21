@@ -6,6 +6,7 @@ class Routing {
 
     public object $Routed;
     private object $Arguments;
+    private array $headers;
 
     public function __construct(
         private string $method,
@@ -14,7 +15,8 @@ class Routing {
         private mixed $PostedDatas = null,
         private bool $DefaultAccessRule
     ){
-        $this->Arguments = $this->CreateArgumentsStructure();
+        $this->headers      = getallheaders();
+        $this->Arguments    = $this->CreateArgumentsStructure();
         foreach ($this->routes as $Pattern => $Route) {
             if (in_array($this->method, explode("|", $Route->methods))) {
                 if ($this->PatternMatched($Pattern)) {
@@ -68,8 +70,11 @@ class Routing {
      */
     private function CreateArgumentsStructure(): object {
         return (object) [
-            "binded" => [],
-            "posted" => $this->PostedDatas ?? null
+            "internal"  => (object) [
+                "AutoRecursiveGeneration" => (isset($this->headers["xAutoRecursiveGeneration"]) && !empty($this->headers["xAutoRecursiveGeneration"]) && $this->headers["xAutoRecursiveGeneration"] === "enabled"? true: false)
+            ],
+            "binded"    => [],
+            "posted"    => $this->PostedDatas ?? null
         ];
     }
 
