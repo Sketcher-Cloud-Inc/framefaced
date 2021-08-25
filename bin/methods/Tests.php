@@ -56,6 +56,7 @@ class Tests {
     private function TriggeringTests(?string $_endpoint = null, ?string $_function = null, bool $debug = false, bool $watch = false, bool $crash = false): void {
         if (!$watch) {
             $AppSrc         = scandir(__path__ . "/src/App/");
+            $Auth           = $this->GetAuthToken() ?? null;
             $TestsResults   = [];
             foreach ($AppSrc as $App) {
                 if ($App !== "." && $App !== "..") {
@@ -69,7 +70,7 @@ class Tests {
                                 $Response       = new \System\Response($Class, __current_version__, true, $TestInstance);
                                 try {
                                     $_Class = new $Class();
-                                    $_Class->{$Function}($Response, $TestInstance->GetRequiredArgs());
+                                    $_Class->{$Function}($Response, $TestInstance->GetRequiredArgs(), $Auth);
                                     $TestsResults["{$Class}@{$Function}"] = [
                                         "status"    => $TestInstance->IsExpectedContentPresent(),
                                         "provided"  => $TestInstance->DataType,
@@ -126,6 +127,21 @@ class Tests {
                 include __path__ . "/src/Tests/System/{$class}.php";
             }
         });
+    }
+
+    /**
+     * Return simple authentication token
+     * 
+     * @return object|null
+     */
+    private function GetAuthToken(): ?object {
+        $dbengine   = new \System\Databases;
+        $tokens     = $dbengine->Query($_ENV["AUTH_TOKEN_DBNAME"], "SELECT * FROM `{$_ENV["AUTH_TOKEN_TABLE_NAME"]}`");
+        foreach ($tokens as $i => &$token) {
+            // Need to add expiration check here
+            break;
+        }
+        return $tokens[$i] ?? null;
     }
 
     /**
