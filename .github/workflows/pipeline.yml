@@ -11,6 +11,9 @@ jobs:
       - name: Download pipeline environment variables
         run: curl -o ./.env https://gist.githubusercontent.com/SimonRTC/6676d69f8cdc16608f7670b9b47448d1/raw/c640539531697c0f45e73fb5c42bb39b56d0ffd8/gistfile1.txt
 
+      - name: Update binaries permissions
+        run: chmod -R 777 ./bin
+
       - name: Create required databases
         run: |
           sudo /etc/init.d/mysql start
@@ -31,7 +34,6 @@ jobs:
 
       - name: Initializing sample databases
         run: |
-          chmod -R 777 ./bin
           ./bin/console databases --falsifications --CrashOnFailure
           ./bin/console databases --import --CrashOnFailure
 
