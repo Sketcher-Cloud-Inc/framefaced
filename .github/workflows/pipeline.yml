@@ -25,8 +25,9 @@ jobs:
           version: 2
           php_version: 8.0
 
-      - name: Update binaries permissions
-        run: chmod -R 777 ./bin
+      - name: Update permissions for runner
+        run: sudo chown -R $USER:$USER ./
+
 
       - name: Create required databases
         run: |
@@ -76,8 +77,8 @@ jobs:
           version: 2
           php_version: 8.0
 
-      - name: Update binaries permissions
-        run: chmod -R 777 ./bin
+      - name: Update permissions for runner
+        run: sudo chown -R $USER:$USER ./
 
       - name: Create required databases
         run: |
@@ -92,9 +93,10 @@ jobs:
         with:
           name: builded
           path: |
-            public/**
-            vendor/**
-            src/**
-            vendor/**
+            public/
+            vendor/
+            src/
+            !src/Tests/
+            vendor/
             composer.json
             composer.lock
