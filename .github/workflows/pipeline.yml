@@ -11,14 +11,6 @@ jobs:
       - name: Download pipeline environment variables
         run: curl -o ./.env https://gist.githubusercontent.com/SimonRTC/6676d69f8cdc16608f7670b9b47448d1/raw/c640539531697c0f45e73fb5c42bb39b56d0ffd8/gistfile1.txt
 
-      - name: Update binaries permissions
-        run: chmod -R 777 ./bin
-
-      - name: Create required databases
-        run: |
-          sudo /etc/init.d/mysql start
-          ./bin/scripts/databases/initializing.sh
-
       - name: Installation of PHP and its required extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -31,6 +23,14 @@ jobs:
           dev: yes
           version: 2
           php_version: 8.0
+
+      - name: Update binaries permissions
+        run: chmod -R 777 ./bin
+
+      - name: Create required databases
+        run: |
+          sudo /etc/init.d/mysql start
+          ./bin/scripts/databases/initializing.sh
 
       - name: Initializing sample databases
         run: |
