@@ -32,7 +32,8 @@ jobs:
       - name: Initializing sample databases
         run: |
           chmod -R 777 ./bin
-          ./bin/console tests --db
+          ./bin/console databases --falsifications
+          ./bin/console databases --import
 
       - name: Launch of tests on Providers and Endpoints (Apps)
         run: ./bin/console tests --debug --CrashOnFailure
