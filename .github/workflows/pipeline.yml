@@ -4,7 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
   tests:
-    name: Running Tests (Endpoints & Providers)
+    name: Tests (Endpoints & Providers)
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -125,4 +125,4 @@ jobs:
         with:
           push: true
           tags: |
-            docker.pkg.github.com/${{ github.repository }}/main:${{ github.sha }}
+            docker.pkg.github.com/${{ secrets.ORGANIZATION_NAME }}/ubuntu:${{ github.sha }}
