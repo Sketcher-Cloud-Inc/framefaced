@@ -4,6 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
   tests:
+    name: Running tests on endpoints and providers
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -47,6 +48,7 @@ jobs:
           path: src/Tests/SQL/*
 
   build:
+    name: Build service for production
     needs: [tests]
     runs-on: ubuntu-20.04
     steps:
