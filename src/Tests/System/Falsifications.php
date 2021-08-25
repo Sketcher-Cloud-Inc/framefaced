@@ -257,7 +257,6 @@ class Falsifications {
                         if (!empty($namespace) && !empty($class)) {
                             $class = trim($class);
                             $class = "{$namespace}\\{$class}";
-                            $Annotation = (new \System\Annotations($class))?->datas ?? [];
                             array_push($indexes, $class);
                         }
                     }
