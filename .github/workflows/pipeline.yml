@@ -73,8 +73,11 @@ jobs:
           ./bin/console databases --falsifications --CrashOnFailure
           ./bin/console databases --import --CrashOnFailure
 
-      - name: Initializing sample databases
-        run: rm -Rf ./vendor/
+      - name: Deleting composer vendor
+        run: |
+          chmod -R 777 ./vendor/
+          rm -Rf ./vendor/
+
 
       - name: Relocation composer dependencies in production mode
         uses: php-actions/composer@v6
