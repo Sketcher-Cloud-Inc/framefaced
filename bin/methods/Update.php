@@ -141,7 +141,7 @@ class Update {
     private function ShowHelper(?\Console\Help &$Helper): bool {
         if (!empty($Helper)) {
             $this->Helper->AddHelper("Update API framwork", strtolower(str_replace(__NAMESPACE__ . "\\", '', __CLASS__)), [
-
+                "Update the framework with precaution, make sure you have a backup of your project !"
             ]);
             return true;
         }
