@@ -73,6 +73,9 @@ class Databases {
                 } else {
                     echo ">>> [\e[32mOK\e[39m] Data(s) correctly inserted in \e[34m\"{$db["table"]}\"\e[39m on \e[34m\"{$db["dbname"]}\"\e[39m.\n";
                 }
+            } else {
+                echo "[\e[91mERROR\e[39m] Unable to locate sql file \"{$path}\".\n";
+                ($this->crash? exit(1): null);
             }
         }
         return;
