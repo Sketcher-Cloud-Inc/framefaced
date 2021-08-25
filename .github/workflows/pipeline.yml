@@ -48,7 +48,7 @@ jobs:
           path: src/Tests/SQL/*
 
   build:
-    name: Build Application
+    name: Compilation
     needs: [tests]
     runs-on: ubuntu-20.04
     steps:
@@ -101,7 +101,7 @@ jobs:
             composer.lock
 
   deploy:
-    name: Deploy Application
+    name: Deployment
     needs: [tests, build]
     runs-on: ubuntu-20.04
     steps:
@@ -125,4 +125,4 @@ jobs:
         with:
           push: true
           tags: |
-            docker.pkg.github.com/${{ github.repository }}/octo-image:${{ github.sha }}
+            docker.pkg.github.com/${{ github.repository }}/main:${{ github.sha }}
