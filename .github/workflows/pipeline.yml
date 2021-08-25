@@ -14,7 +14,7 @@ jobs:
       - name: Installation of PHP and its required extensions
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0.0'
+          php-version: '8.0'
           extensions: bcmath, calendar, Core, ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, mysqli, mysqlnd, openssl, pcre, PDO, pdo_mysql, Phar, Reflection, SimpleXML, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
 
       - name: Install composer dependencies
