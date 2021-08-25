@@ -84,3 +84,15 @@ jobs:
 
       - name: Initializing sample databases
         run: ./bin/console databases --import --CrashOnFailure
+
+      - name: Archive the builded framework
+        uses: actions/upload-artifact@v2
+        with:
+          name: builded
+          path:
+            - public/**
+            - vendor/**
+            - src/**
+            - vendor/**
+            - composer.json
+            - composer.lock
