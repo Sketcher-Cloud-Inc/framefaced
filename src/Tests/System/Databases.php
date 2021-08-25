@@ -7,7 +7,9 @@ class Databases {
 
     private \System\Databases $dbengine;
 
-    public function __construct() {
+    public function __construct(
+        private bool $crash
+    ){
         $this->dbengine = new \System\Databases;
 
         echo "Creation of the database structure and insertion of samples datas... (this operation may take a few seconds)\n - - - - - - - - - - - - - - - -\n";

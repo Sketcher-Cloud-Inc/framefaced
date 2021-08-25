@@ -4,6 +4,8 @@ namespace Console;
 
 class Databases {
 
+    private $crash;
+
     /**
      * Manage your databases
      */
@@ -13,14 +15,16 @@ class Databases {
     ) {
         if (!$this->ShowHelper($this->Helper)) {   
             $this->LocalTestSplAutoloader();
+            $this->crash = (in_array("--CrashOnFailure", $this->Commitments->arguments)? true: false);
             if (in_array("--import", $this->Commitments->arguments)) {
-                new \Tests\Databases;
+                new \Tests\Databases($this->crash);
             } elseif (in_array("--indexes", $this->Commitments->arguments)) {
                 $indexes = $this->ScanObjectsSchematicsAndIndexes();
                 file_put_contents(__path__ . "/src/System/Schematics/indexes.json", json_encode($indexes));
             } elseif (in_array("--falsifications", $Commitments->arguments)) {
                 new \Tests\Falsifications(
-                    (in_array("--entries", $Commitments->arguments)? (int) $Commitments->ArgsValues["--entries"] ?? 10: 10)
+                    (in_array("--entries", $Commitments->arguments)? (int) $Commitments->ArgsValues["--entries"] ?? 10: 10),
+                    $this->crash
                 );
             }
         }
