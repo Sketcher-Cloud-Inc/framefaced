@@ -4,6 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
   tests:
+    name: Tests (Endpoints & Providers)
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -24,8 +25,8 @@ jobs:
           version: 2
           php_version: 8.0
 
-      - name: Update binaries permissions
-        run: chmod -R 777 ./bin
+      - name: Update permissions for runner
+        run: sudo chmod -R 777 ./
 
       - name: Create required databases
         run: |
@@ -47,19 +48,11 @@ jobs:
           path: src/Tests/SQL/*
 
   build:
+    name: Compilation (composer)
     needs: [tests]
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
-
-      - name: Download databases falsifications
-        uses: actions/download-artifact@v2
-        with:
-          name: databases
-          path: src/Tests/SQL/
-
-      - name: Download pipeline environment variables
-        run: curl -o ./.env https://gist.githubusercontent.com/SimonRTC/6676d69f8cdc16608f7670b9b47448d1/raw/c640539531697c0f45e73fb5c42bb39b56d0ffd8/gistfile1.txt
 
       - name: Installation of PHP and its required extensions
         uses: shivammathur/setup-php@v2
@@ -74,13 +67,51 @@ jobs:
           version: 2
           php_version: 8.0
 
-      - name: Update binaries permissions
-        run: chmod -R 777 ./bin
+      - name: Dump autoload
+        uses: php-actions/composer@v6
+        with:
+          command: dump-autoload
+          only_args: -o --no-dev --no-interaction --classmap-authoritative
 
-      - name: Create required databases
-        run: |
-          sudo /etc/init.d/mysql start
-          ./bin/scripts/databases/initializing.sh
+      - name: Archive the builded framework
+        uses: actions/upload-artifact@v2
+        with:
+          name: build
+          path: |
+            public/
+            vendor/
+            src/
+            !src/Tests/
+            vendor/
+            composer.json
+            composer.lock
 
-      - name: Initializing sample databases
-        run: ./bin/console databases --import --CrashOnFailure
+  deploy_alpine:
+    name: Deployment (alpine)
+    needs: [tests, build]
+    runs-on: ubuntu-20.04
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/checkout@v2
+      - name: Declaration of runner environment variables
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Download builded application
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: ./
+
+      - name: Log in to GitHub Docker Registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: docker.pkg.github.com
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          push: true
+          tags: |
+            docker.pkg.github.com/${{ secrets.ORGANIZATION_NAME }}/framefaced/alpine:${{ env.RELEASE_VERSION }}

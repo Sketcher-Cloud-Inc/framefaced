@@ -26,6 +26,6 @@ foreach ($databases as $db => &$database) {
         echo shell_exec("mysql -e 'CREATE DATABASE example;' -u{$database->access->username} -p{$database->access->password}");
     } else {
         echo "[\e[91mERROR\e[39m] Unable to create database \"{$db}\" !";
-        exit(0);
+        exit(1);
     }
 }
