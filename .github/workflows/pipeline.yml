@@ -67,6 +67,12 @@ jobs:
           version: 2
           php_version: 8.0
 
+      - name: Dump autoload
+        uses: php-actions/composer@v6
+        with:
+          command: dump-autoload
+          only_args: -o --no-dev --no-interaction --classmap-authoritative
+
       - name: Archive the builded framework
         uses: actions/upload-artifact@v2
         with:
@@ -80,10 +86,11 @@ jobs:
             composer.json
             composer.lock
 
-  deploy:
+  deploy_alpine:
     name: Deployment (alpine)
     needs: [tests, build]
     runs-on: ubuntu-20.04
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v2
 
