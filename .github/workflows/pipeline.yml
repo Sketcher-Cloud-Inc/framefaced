@@ -4,7 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
   tests:
-    name: Running tests on endpoints and providers
+    name: Running Tests (Endpoints & Providers)
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
@@ -48,7 +48,7 @@ jobs:
           path: src/Tests/SQL/*
 
   build:
-    name: Build service for production
+    name: Build Application
     needs: [tests]
     runs-on: ubuntu-20.04
     steps:
@@ -90,7 +90,7 @@ jobs:
       - name: Archive the builded framework
         uses: actions/upload-artifact@v2
         with:
-          name: builded
+          name: build
           path: |
             public/
             vendor/
@@ -99,3 +99,31 @@ jobs:
             vendor/
             composer.json
             composer.lock
+
+            build:
+
+    name: Deploy Application
+    needs: [tests, build]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download builded application
+        uses: actions/download-artifact@v2
+        with:
+          name: build
+          path: ./
+
+      - name: Log in to GitHub Docker Registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
+          registry: docker.pkg.github.com
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          push: true
+          tags: |
+            docker.pkg.github.com/${{ github.repository }}/octo-image:${{ github.sha }}
