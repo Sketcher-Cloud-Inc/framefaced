@@ -10,7 +10,8 @@ class Falsifications {
     private object $datas;
     
     public function __construct(
-        private int $nbIndexes
+        private int $nbIndexes,
+        private bool $crash
     ) {
         $this->Faker    = \Faker\Factory::create();
         $this->indexes  = $this->ScanAllObjects();
@@ -22,7 +23,7 @@ class Falsifications {
                 return $args[rand(0, (count($args) - 1))];
             },
             "RandomArray" => function($args) {
-                return str_replace("\"", "\\\"", json_encode($args));
+                return json_encode($args);
             },
             "RandomNumber" => function($args) {
                 return (int) round(rand($args[0], $args[1]), (isset($args[2]) && !empty($args[2])? $args[2]: 1));
@@ -134,15 +135,15 @@ class Falsifications {
                                     }
                                 } else {
                                     echo "[\e[91mERROR\e[39m] Source function not found in \"{$PropertyName}\" on \"{$ObjName}\"!";
-                                    exit(1);
+                                    ($this->crash? exit(1): null);
                                 }
                             } catch (\Throwable $e) {
                                 echo "[\e[91mERROR\e[39m] Source function return error \"{$e->getMessage()}\" in \"{$PropertyName}\" on \"{$ObjName}\"!";
-                                exit(1);
+                                ($this->crash? exit(1): null);
                             }
                         } else {
                             echo "[\e[91mERROR\e[39m] Source function is not corretcly declared in \"{$PropertyName}\" on \"{$ObjName}\"!";
-                            exit(1);
+                            ($this->crash? exit(1): null);
                         }
                     } elseif ($type === "reference") {
                         for ($i = 0; $i <= $this->nbIndexes; $i++) {
@@ -151,12 +152,13 @@ class Falsifications {
                         }
                     } else {
                         echo "[\e[91mERROR\e[39m] Source kind provider not found in \"{$PropertyName}\" on \"{$ObjName}\"!";
-                        exit(1);
+                        ($this->crash? exit(1): null);
                     }
                     $Object["class"] = $ObjName;
                 } else {
                     echo "[\e[33mWARNING\e[39m] Can't use \e[92m\"{$ObjName}\"\e[39m: Source must be defined in \e[94m\"{$PropertyName}\"\e[39m.\n";
                     $usable = false;
+                    ($this->crash? exit(1): null);
                 }
             }
             if ($usable) {
@@ -225,6 +227,7 @@ class Falsifications {
                         }
                         if (!$set) {
                             echo "[\e[91mERROR\e[39m] Unable to find class \e[92m\"{$class}\"\e[39m on generated datas.\n";
+                            ($this->crash? exit(1): null);
                         }
                     }
                 }
@@ -254,7 +257,6 @@ class Falsifications {
                         if (!empty($namespace) && !empty($class)) {
                             $class = trim($class);
                             $class = "{$namespace}\\{$class}";
-                            $Annotation = (new \System\Annotations($class))?->datas ?? [];
                             array_push($indexes, $class);
                         }
                     }

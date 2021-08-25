@@ -2,9 +2,6 @@
 
 namespace Console;
 
-use Closure;
-use Exception;
-
 class Tests {
 
     /**
@@ -16,21 +13,14 @@ class Tests {
     ) {
         if (!$this->ShowHelper($this->Helper)) {   
             $this->LocalTestSplAutoloader();
-            if (in_array("--db", $this->Commitments->arguments)) {
-                new \Tests\Databases;
-            } elseif (in_array("--db-indexes", $this->Commitments->arguments)) {
-                $indexes = $this->ScanObjectsSchematicsAndIndexes();
-                file_put_contents(__path__ . "/src/System/Schematics/indexes.json", json_encode($indexes));
-            } else {
-                $endpoint   = $this->Commitments->ArgsValues["--endpoint"] ?? null;
-                $function   = (!empty($endpoint)? $this->Commitments->ArgsValues["--function"] ?? null: null);
-                $crash      = (in_array("--CrashOnFailure", $this->Commitments->arguments)? true: false);
-                echo "- - - - - - Providers - - - - -\n";
-                $this->TriggeringProvidersTests($crash);
-                echo "- - - - - - Endpoints - - - - -\n";
-                echo "- - - - - - - - - - - - - - - -\n";
-                $this->TriggeringTests($endpoint, $function, (in_array("--debug", $this->Commitments->arguments)? true: false), (in_array("--watch", $this->Commitments->arguments)? true: false), $crash);
-            }
+            $endpoint   = $this->Commitments->ArgsValues["--endpoint"] ?? null;
+            $function   = (!empty($endpoint)? $this->Commitments->ArgsValues["--function"] ?? null: null);
+            $crash      = (in_array("--CrashOnFailure", $this->Commitments->arguments)? true: false);
+            echo "- - - - - - Providers - - - - -\n";
+            $this->TriggeringProvidersTests($crash);
+            echo "- - - - - - Endpoints - - - - -\n";
+            echo "- - - - - - - - - - - - - - - -\n";
+            $this->TriggeringTests($endpoint, $function, (in_array("--debug", $this->Commitments->arguments)? true: false), (in_array("--watch", $this->Commitments->arguments)? true: false), $crash);
         }
         return;
     }
@@ -129,47 +119,13 @@ class Tests {
      */
     private function LocalTestSplAutoloader(): void {
         spl_autoload_register(function ($class) {
-            [ $namespace, $class ] = explode("\\", $class);
+            $namespace = explode("\\", $class);
+            $class      = $namespace[1] ?? null;
+            $namespace  = $namespace[0] ?? null;
             if ($namespace === "Tests") {
                 include __path__ . "/src/Tests/System/{$class}.php";
             }
         });
-    }
-
-    /**
-     * Scan and find all object required indexes for database engine
-     * 
-     * @return void
-     */
-    private function ScanObjectsSchematicsAndIndexes(?string $path = null): array {
-        $path       = realpath((!empty($path)? $path: __path__ . "/src/System/Schematics/{$path}"));
-        $indexes    = [];
-        foreach (scandir($path) as $scanned) {
-            if ($scanned !== "." && $scanned !== "..") {
-                $scanned = "{$path}/{$scanned}";
-                if (!is_dir($scanned)) {
-                    if (pathinfo($scanned, PATHINFO_EXTENSION) === "php") {
-                        $content = file_get_contents($scanned);
-                        preg_match('/namespace (.*);/', $content, $namespace);
-                        preg_match('/class (.*){/', $content, $class);
-                        $namespace = $namespace[1] ?? null;
-                        $class = $class[1] ?? null;
-                        if (!empty($namespace) && !empty($class)) {
-                            $class = trim($class);
-                            $class = "{$namespace}\\{$class}";
-                            $Annotation = (new \System\Annotations($class))?->datas ?? [];
-                            if (isset($Annotation["database"]) && !empty($Annotation["database"]) && isset($Annotation["table"]) && !empty($Annotation["table"])) {
-                                echo "- New index found \"{$class}\"\n";
-                                $indexes = array_merge($indexes, [ "{$Annotation["table"]}" => $class ]);
-                            }
-                        }
-                    }
-                } else {
-                    $indexes = array_merge($indexes, $this->ScanObjectsSchematicsAndIndexes($scanned));
-                }
-            }
-        }
-        return $indexes;
     }
 
     /**
