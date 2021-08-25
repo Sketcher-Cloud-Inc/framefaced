@@ -54,15 +54,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download databases falsifications
-        uses: actions/download-artifact@v2
-        with:
-          name: databases
-          path: src/Tests/SQL/
-
-      - name: Download pipeline environment variables
-        run: curl -o ./.env https://gist.githubusercontent.com/SimonRTC/6676d69f8cdc16608f7670b9b47448d1/raw/c640539531697c0f45e73fb5c42bb39b56d0ffd8/gistfile1.txt
-
       - name: Installation of PHP and its required extensions
         uses: shivammathur/setup-php@v2
         with:
@@ -75,17 +66,6 @@ jobs:
           dev: no
           version: 2
           php_version: 8.0
-
-      - name: Update permissions for runner
-        run: sudo chmod -R 777 ./
-
-      - name: Create required databases
-        run: |
-          sudo /etc/init.d/mysql start
-          ./bin/scripts/databases/initializing.sh
-
-      - name: Initializing sample databases
-        run: ./bin/console databases --import --CrashOnFailure
 
       - name: Archive the builded framework
         uses: actions/upload-artifact@v2
