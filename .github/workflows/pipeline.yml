@@ -89,10 +89,10 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: builded
-          path:
-            - public/**
-            - vendor/**
-            - src/**
-            - vendor/**
-            - composer.json
-            - composer.lock
+          path: |
+            public/**
+            vendor/**
+            src/**
+            vendor/**
+            composer.json
+            composer.lock
