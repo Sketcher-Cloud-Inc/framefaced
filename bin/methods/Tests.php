@@ -129,7 +129,9 @@ class Tests {
      */
     private function LocalTestSplAutoloader(): void {
         spl_autoload_register(function ($class) {
-            [ $namespace, $class ] = explode("\\", $class);
+            $namespace = explode("\\", $class);
+            $class      = $namespace[1] ?? null;
+            $namespace  = $namespace[0] ?? null;
             if ($namespace === "Tests") {
                 include __path__ . "/src/Tests/System/{$class}.php";
             }

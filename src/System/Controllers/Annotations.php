@@ -5,19 +5,24 @@ namespace System;
 class Annotations {
 
     public array $datas = [];
-    private array $phpDoc;
 
     public function __construct(
         private \ReflectionClass | string $Class,
-        private ?string $FunctionName = null
+        private ?string $FunctionName = null,
+        private ?string $PropertyName = null
     ) {
         $this->Class = (is_object($this->Class)? $this->Class: (new \ReflectionClass($Class)));
-        $this->phpDoc = explode("*", (($this->FunctionName !== null? $this->Class->getMethod($this->FunctionName)->getDocComment(): $this->Class->getDocComment()) ?? null));
-        foreach ($this->phpDoc as $phpDoc) {
-            if (preg_match('/@(.*) "(.*)"\r\n/', $phpDoc, $match) || preg_match('/@(.*) "(.*)"\n/', $phpDoc, $match) || preg_match('/@(.*) "(.*)"\r/', $phpDoc, $match) || preg_match('/@(.*) "(.*)"\n\r/', $phpDoc, $match)) {
-                if (isset($match[1]) && !empty($match[1]) && isset($match[2]) && !empty($match[2])) {
-                    $this->datas[$match[1]] = $match[2];
-                }
+        $phpDocs = (!empty($PropertyName)? $this->Class->getProperty($this->PropertyName)->getDocComment(): (!empty($this->FunctionName)? $this->Class->getMethod($this->FunctionName)->getDocComment(): $this->Class->getDocComment()));
+        $phpDocs = (!empty($phpDocs)? explode("*", $phpDocs): []);
+        foreach ($phpDocs as $phpDoc) {
+            $phpDoc = trim($phpDoc);
+            if (preg_match('/@(.*)/', $phpDoc, $match)) {
+                $match  = $match[1] ?? null;
+                $match  = explode(" ", $match);
+                $var    = $match[0];
+                unset($match[0]);
+                $value  = trim(implode(" ", $match), "\"");
+                $this->datas[$var] = $value;
             }
         }
     }
