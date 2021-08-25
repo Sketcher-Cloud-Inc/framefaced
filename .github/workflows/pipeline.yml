@@ -48,7 +48,7 @@ jobs:
           path: src/Tests/SQL/*
 
   build:
-    name: Compilation
+    name: Compilation (composer)
     needs: [tests]
     runs-on: ubuntu-20.04
     steps:
@@ -81,7 +81,7 @@ jobs:
             composer.lock
 
   deploy:
-    name: Deployment
+    name: Deployment (alpine)
     needs: [tests, build]
     runs-on: ubuntu-20.04
     steps:
@@ -105,4 +105,4 @@ jobs:
         with:
           push: true
           tags: |
-            docker.pkg.github.com/${{ secrets.ORGANIZATION_NAME }}/framefaced/ubuntu:${{ github.sha }}
+            docker.pkg.github.com/${{ secrets.ORGANIZATION_NAME }}/framefaced/alpine:${{ github.sha }}
