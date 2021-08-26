@@ -8,13 +8,12 @@ class ObjectsResolver {
     
     public function __construct() {
         $this->convert  = [
-            "int"           => "integer",
-            "bigint"        => "integer",
-            "tinyint"       => "boolean",
-            "float"         => "float",
-            "double"        => "double",
-            "array"         => "array",
-            "multi-array"   => "array"
+            "int"       => "integer",
+            "bigint"    => "integer",
+            "tinyint"   => "boolean",
+            "float"     => "float",
+            "double"    => "double",
+            "array"     => "array"
         ];
     }
         

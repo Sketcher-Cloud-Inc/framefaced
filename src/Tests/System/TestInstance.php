@@ -7,11 +7,17 @@ class TestInstance {
     public string $DataType;
     public string $DataExpected;
     private \ReflectionClass $ReflectedClass;
+    private \Tests\Falsifications $Falsifications;
+    private \System\Databases $dbengine;
     
     public function __construct(
         private string $Class,
-        private string $Function
-    ) {}
+        private string $Function,
+        private bool $crash = false
+    ) {
+        $this->Falsifications   = new \Tests\Falsifications(null, $crash);
+        $this->dbengine         = new \System\Databases;
+    }
 
     /**
      * Check if content provided is the expected
@@ -23,7 +29,8 @@ class TestInstance {
         $this->DataExpected = $DatasExpected;
         $DatasExpected      = explode("|", $DatasExpected);
         foreach ($DatasExpected as $DataExpected) {
-            if (strcasecmp($DataExpected, $this->DataType) == 0 || $DataExpected === "void" && $this->DataType === "NULL") {
+            $DataExpected = ($DataExpected === "bool"? "boolean": $DataExpected);
+            if (strcasecmp(trim($DataExpected, "\\"), $this->DataType) == 0 || $DataExpected === "void" && $this->DataType === "NULL") {
                 return true;
             }
         }
@@ -60,36 +67,70 @@ class TestInstance {
     /**
      * Get required arguements
      * 
+     * @param string $class
+     * @param string $function
+     * 
      * @return mixed
      */
-    public function GetRequiredArgs(): mixed {
-        $Reflector = $this->GetReflectedClass($this->Class);
-        $DocComment = $Reflector->getMethod($this->Function)->getDocComment() ?? null;
-        preg_match('/@source (.*)\r\n/', $DocComment, $source);
-        if (empty($source[1])) {
-            preg_match('/@source (.*)\n/', $DocComment, $source);
-            if (empty($source[1])) {
-                preg_match('/@source (.*)\r/', $DocComment, $source);
-                if (empty($source[1])) {
-                    preg_match('/@source (.*)\n\r/', $DocComment, $source);
+    public function GetRequiredArgs(string $_class, string $function): mixed {
+        $class      = new \ReflectionClass($_class);
+        $arguments  = (object) [ "binded" => [], "posted" => (object) [] ];
+        $phpDocs    = $class->getMethod($function)->getDocComment();
+        $phpDocs    = (!empty($phpDocs)? explode("*", $phpDocs): []);
+        $tables     = json_decode(file_get_contents(__path__ . "/src/System/Schematics/indexes.json"), true);
+        foreach ($phpDocs as $phpDoc) {
+            $phpDoc = trim($phpDoc);
+            if (preg_match('/@(.*)/', $phpDoc, $match)) {
+                $matched  = $match[1] ?? null;
+                $matched  = explode(" ", $matched)[0];
+                if ($matched === "binded" || $matched === "posted") {
+                    $match = $match[1];
+                    $match = trim(str_replace($matched, "", $match));
+                    preg_match('/(.*) "(.*)"/', $match, $pattern);
+                    if (isset($pattern[1]) && isset($pattern[2]) && !empty($pattern[1]) && !empty($pattern[2])) {
+                        [ $keyname, $value ] = [ $pattern[1], $pattern[2] ];
+                        [ $kind, $func ] = explode("::", $value);
+                        if ($kind === "datas") {
+                            $_func = $func;
+                            $match = [];
+                            preg_match('/(.*)\((.*)\)/', $_func, $match);
+                            if (!empty($match[0])) {
+                                [ $func, $args ] = [ $match[1], explode(",", $match[2]) ?? [] ];
+                                foreach ($args as &$arg) {
+                                    $arg = trim($arg, "\"");
+                                }
+                                if (method_exists($this->Falsifications, "datas__{$func}")) {
+                                    $value = call_user_func_array([$this->Falsifications, "datas__{$func}"], $args);
+                                } else {
+                                    echo "[\e[91mERROR\e[39m] Method \"{$func}\" not found for \"{$_func}\"\n";
+                                    ($this->crash? exit(1): null);
+                                }
+                            } else {
+                                echo "[\e[91mERROR\e[39m] Method pattern not found for \"{$_func}\"\n";
+                                ($this->crash? exit(1): null);
+                            }
+                        } elseif ($kind === "reference") {
+                            $func = explode("->", $func);
+                            [ $classname, $parameter ] = [ trim($func[0], "\\"), $func[1] ?? null ];
+                            if (in_array($classname, $tables)) {
+                                $value = $this->GetDataFromTable($classname, $parameter);
+                            } else {
+                                $value = $this->Falsifications->GenerateSampleDatas($classname, $parameter);
+                            }
+                        }
+                        if ($matched === "binded") {
+                            $arguments->{$matched}[$keyname] = $value;
+                        } else {
+                            $arguments->{$matched}->{$keyname} = $value;
+                        }
+                    } else {
+                        echo "[\e[91mERROR\e[39m] Argument pattern dosen't match on \"{$matched}\" at \"{$_class}@{$function}\"";
+                        ($this->crash? exit(1): null);
+                    }
                 }
             }
         }
-        $source = $source[1] ?? null;
-        if (!empty($source)) {
-            $source = str_replace(".", "\\", $source);
-            $source = "\\Sources\\{$source}";
-            $path   = realpath(realpath(__path__ . "/src/Tests/" . str_replace("\\", "/", $source) . ".php"));
-            if ($path !== false) {
-                include $path;
-                $source = new $source();
-                $source = (object) [
-                    "binded" => $source?->Binded ?? [],
-                    "posted" => $source?->Posted ?? (object) []
-                ];
-            }
-        }
-        return $source ?? (object) [ "binded" => [], "posted" => (object) [] ];
+        return $arguments;
     }
 
     /**
@@ -111,6 +152,22 @@ class TestInstance {
             }
         }
         return $return[1] ?? "void";
+    }
+
+    /**
+     * Get data from table
+     * 
+     * @param string $classname
+     * @param string|null $parameter
+     * 
+     * @return string|null
+     */
+    private function GetDataFromTable(string $classname, string $parameter = null): ?string {
+        $Annotations    = (new \System\Annotations($classname))->datas;
+        $dbname         =    $Annotations["database"] ?? null;
+        $table          = $Annotations["table"] ?? null;
+        $rows           = $this->dbengine->Query($dbname, "SELECT * FROM `{$table}`");
+        return (isset($rows[0]) && !empty($rows[0])? (!empty($parameter)? $rows[0]?->{$parameter}: $rows[0]): null);
     }
 
     /**
