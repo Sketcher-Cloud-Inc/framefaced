@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Download pipeline environment variables
-        run: curl -o ./.env https://gist.githubusercontent.com/SimonRTC/6676d69f8cdc16608f7670b9b47448d1/raw/c640539531697c0f45e73fb5c42bb39b56d0ffd8/gistfile1.txt
+        run: curl -o ./.env https://gist.githubusercontent.com/SimonRTC/6676d69f8cdc16608f7670b9b47448d1/raw/4b7e0348fb27d3771e1d5b7c3cfe9c4436cb3b29/.env
 
       - name: Installation of PHP and its required extensions
         uses: shivammathur/setup-php@v2
