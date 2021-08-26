@@ -1,0 +1,32 @@
+{
+  "name": "framefaced-documentation",
+  "version": "1.0.0",
+  "description": "Framefaced - Documentation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sketcher-Cloud-Inc/framefaced.git"
+  },
+  "author": "Simon Malpel <simon.malpel@orange.fr>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Sketcher-Cloud-Inc/framefaced/issues"
+  },
+  "homepage": "https://sketcher-cloud-inc.github.io/framefaced/",
+  "devDependencies": {
+    "@popperjs/core": "^2.9.3",
+    "bootstrap": "^5.1.0",
+    "css-loader": "^6.2.0",
+    "html-loader": "^2.1.2",
+    "node-sass": "^6.0.1",
+    "sass-loader": "^12.1.0",
+    "style-loader": "^3.2.1",
+    "webpack": "^5.51.1",
+    "webpack-cli": "^4.8.0"
+  },
+  "dependencies": {}
+}

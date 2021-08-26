@@ -1,0 +1,53 @@
+<h1>Get started with <u>Framefaced</u></h1>
+<p class="fs-5 col-md-10">Thanks for choosing framefaced for your project, if you want contribute you all are welcomed. This project is an open-source project our company using it for manies provided services. He was born recently and we've a goal to maintain it as much as possible and as long as possible !</p>
+
+<section class="mt-5" id="environment-variables">
+    <h1 class="fs-2">Create environment variables</h1><hr />
+    <p>
+        You need to configure your environment variables before launch your project.
+        You can use file <code>.env.sample</code> and rename it <code>.env</code> to create the default environment.
+        Environment variables file is based on Symfony\Dotenv, you can use the <a href="https://symfony.com/doc/3.4/components/dotenv.html#usage" target="_blank">official documentation</a> for more informations about syntax.
+    </p>
+
+    <div id="environment-variables_debug-mode">
+        <hr class="hr-section" />
+        <h2 class="fs-4 mt-4 mb-3"><small><i class="fas fa-link text-muted px-2" data-link="environment-variables_debug-mode"></i></small>Debug Mode<small class="d-block text-muted fs-6">Variable name: <code>DEBUG_MODE</code></small></h2>
+        <p class="alert alert-info"><b>Important</b>, if you're in debug mode you need to create a second file <code>.env.dev</code>. You can overwrite defined variables in <code>.env</code>, or leave it blank.</p>
+        <p class="fs-5">Example</p>
+        <pre># Enable debug mode (display errors and load ".env.dev")
+DEBUG_MODE=true</pre>
+    </div>
+    <div id="environment-variables_databases">
+        <hr class="hr-section" />
+        <h2 class="fs-4 mt-4 mb-3"><small><i class="fas fa-link text-muted px-2" data-link="environment-variables_databases"></i></small>Databases<small class="d-block text-muted fs-6">Variable name: <code>DATABASE_{{dbname}}_USER</code> & <code>DATABASE_{{dbname}}_PASSWORD</code></small></h2>
+        <p>
+            For each databases referenced in your <b>databases.json</b> you need to specify username and password.
+            Replace content <u>{{dbname}}</u> by your database name in <b>databases.json</b>.
+            You can leave password as blank, but you need to declare it.
+        </p>
+        <p class="fs-5">Example</p>
+        <pre># Example of database credentials
+DATABASE_EXAMPLE_USER=example
+DATABASE_EXAMPLE_PASSWORD=example-password</pre>
+    </div>
+    <div id="environment-variables_authentication">
+        <hr class="hr-section" />
+        <h2 class="fs-4 mt-4 mb-3"><small><i class="fas fa-link text-muted px-2" data-link="environment-variables_authentication"></i></small>Authentication token database location<small class="d-block text-muted fs-6">Variable name: <code>AUTH_TOKEN_DBNAME</code> & <code>AUTH_TOKEN_TABLE_NAME</code></small></h2>
+        <p>In this variable you need to specify the authentication token database and table name.</p>
+        <p class="fs-5">Example</p>
+        <pre># Authentication token database location
+AUTH_TOKEN_DBNAME=example
+AUTH_TOKEN_TABLE_NAME=tokens</pre>
+    </div>
+    
+</section>
+
+<section class="mt-5" id="development-server">
+    <h1 class="fs-2">Run a development server</h1><hr />
+    <p>You can use the command <code>run</code> in your project console (like this: <code>./path/to/console run</code>). If you opened the shell in project root the console location is <code>./bin/console</code>.</p>
+    <div id="environment-variables_debug-mode">
+        <hr class="hr-section" />
+        <h2 class="fs-4 mt-4 mb-3"><small><i class="fas fa-link text-muted px-2" data-link="development-server"></i></small>Hostname & Port</h2>
+        <p>You can specify the hostname and the port with <code>./path/to/console run {{hostname}}:{{port}}</code></p>
+    </div>
+</section>
