@@ -90,9 +90,8 @@ jobs:
     name: Deployment (alpine)
     needs: [tests, build]
     runs-on: ubuntu-20.04
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    ## if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/checkout@v2
       - name: Declaration of runner environment variables
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
