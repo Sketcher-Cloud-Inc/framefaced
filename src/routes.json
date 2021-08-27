@@ -1,0 +1,10 @@
+[
+    {
+        "pattern": "/",
+        "component": "HomeComponents"
+    },
+    {
+        "pattern": "/get-started",
+        "component": "GetStartedComponents"
+    }
+]
