@@ -14,7 +14,7 @@ class Tokens {
     /**
      * Unique identifier generated on rfc4122 format
      * 
-     * @source "datas::NewIdentifier(type: Rfc4122)"
+     * @source "datas::NewIdentifier(Rfc4122)"
      * @var string
      */
     public string $uuid = "primary|varchar(36)";
@@ -22,7 +22,7 @@ class Tokens {
     /**
      * Autentication token
      * 
-     * @source "datas::NewIdentifier(type: Base58)"
+     * @source "datas::NewIdentifier(Base58)"
      * @var string
      */
     public string $token = "text(-1)";

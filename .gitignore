@@ -19,3 +19,6 @@
 ## Version management (git)
 /.version
 /.update
+
+## Builded project
+/dist/

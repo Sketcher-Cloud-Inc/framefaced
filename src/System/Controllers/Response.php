@@ -46,7 +46,7 @@ class Response {
         $ErrorTypes = json_decode(file_get_contents(__path__ . "/src/conf/ErrorsCodes.json"), false) ?? null;
         $ErrorType  = (isset($ErrorTypes->{$ErrorCode}) && !empty($ErrorTypes->{$ErrorCode})? $ErrorTypes->{$ErrorCode}: null);
         if (empty($ErrorType)) {
-            $_ErrorTypes = json_decode(file_get_contents(__path__ . "/src/App/" . explode("\\", $this->Class)[1] . "/ErrorsCodes.json"), false) ?? null;
+            $_ErrorTypes = json_decode(file_get_contents(__path__ . "/src/App/" . explode("\\", trim($this->Class, "\\"))[1] . "/ErrorsCodes.json"), false) ?? null;
             $ErrorType  = (isset($_ErrorTypes->{$ErrorCode}) && !empty($_ErrorTypes->{$ErrorCode})? $_ErrorTypes->{$ErrorCode}: $ErrorTypes->UNKNOWN_ERROR);
         }
         $ErrorType->codename = $ErrorCode;

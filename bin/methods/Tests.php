@@ -4,6 +4,8 @@ namespace Console;
 
 class Tests {
 
+    private bool $crash;
+
     /**
      * Start test of the features calling in the router
      */
@@ -13,14 +15,14 @@ class Tests {
     ) {
         if (!$this->ShowHelper($this->Helper)) {   
             $this->LocalTestSplAutoloader();
-            $endpoint   = $this->Commitments->ArgsValues["--endpoint"] ?? null;
-            $function   = (!empty($endpoint)? $this->Commitments->ArgsValues["--function"] ?? null: null);
-            $crash      = (in_array("--CrashOnFailure", $this->Commitments->arguments)? true: false);
+            $endpoint       = $this->Commitments->ArgsValues["--endpoint"] ?? null;
+            $function       = (!empty($endpoint)? $this->Commitments->ArgsValues["--function"] ?? null: null);
+            $this->crash    = (in_array("--CrashOnFailure", $this->Commitments->arguments)? true: false);
             echo "- - - - - - Providers - - - - -\n";
-            $this->TriggeringProvidersTests($crash);
+            $this->TriggeringProvidersTests($this->crash);
             echo "- - - - - - Endpoints - - - - -\n";
             echo "- - - - - - - - - - - - - - - -\n";
-            $this->TriggeringTests($endpoint, $function, (in_array("--debug", $this->Commitments->arguments)? true: false), (in_array("--watch", $this->Commitments->arguments)? true: false), $crash);
+            $this->TriggeringTests($endpoint, $function, (in_array("--debug", $this->Commitments->arguments)? true: false), (in_array("--watch", $this->Commitments->arguments)? true: false), $this->crash);
         }
         return;
     }
@@ -56,6 +58,7 @@ class Tests {
     private function TriggeringTests(?string $_endpoint = null, ?string $_function = null, bool $debug = false, bool $watch = false, bool $crash = false): void {
         if (!$watch) {
             $AppSrc         = scandir(__path__ . "/src/App/");
+            $Auth           = $this->GetAuthToken() ?? null;
             $TestsResults   = [];
             foreach ($AppSrc as $App) {
                 if ($App !== "." && $App !== "..") {
@@ -64,24 +67,26 @@ class Tests {
                         foreach ($routes as $pattern => $route) {
                             [$Class, $Function] = explode("@", $route->service);
                             if ($_function === null || strcasecmp($Function, $_function) == 0) {
-                                $Class          = "\\App\\{$App}\\{$Class}";
-                                $TestInstance   = new \Tests\TestInstance($Class, $Function);
-                                $Response       = new \System\Response($Class, __current_version__, true, $TestInstance);
-                                try {
-                                    $_Class = new $Class();
-                                    $_Class->{$Function}($Response, $TestInstance->GetRequiredArgs());
-                                    $TestsResults["{$Class}@{$Function}"] = [
-                                        "status"    => $TestInstance->IsExpectedContentPresent(),
-                                        "provided"  => $TestInstance->DataType,
-                                        "expected"  => $TestInstance->DataExpected
-                                    ];
-                                    $displayStatus  = ($TestsResults["{$Class}@{$Function}"]["status"]? "[\e[32mOK\e[39m]": "[\e[91mERROR\e[39m]");
-                                    echo "{$Class}@{$Function}" . ($debug? " >>> (expected: \"$TestInstance->DataExpected\", provided: \"$TestInstance->DataType\")": " -") . " {$displayStatus}\n";
-                                    if ($TestsResults["{$Class}@{$Function}"]["status"] === false && $crash) {
-                                        exit(1);
+                                $Class = "\\App\\{$App}\\{$Class}";
+                                if ($this->isTestable($Class, $Function)) {
+                                    $TestInstance   = new \Tests\TestInstance($Class, $Function, $this->crash);
+                                    $Response       = new \System\Response($Class, __current_version__, true, $TestInstance);
+                                    try {
+                                        $_Class = new $Class();
+                                        $_Class->{$Function}($Response, $TestInstance->GetRequiredArgs($Class, $Function), $Auth);
+                                        $TestsResults["{$Class}@{$Function}"] = [
+                                            "status"    => $TestInstance->IsExpectedContentPresent(),
+                                            "provided"  => $TestInstance->DataType,
+                                            "expected"  => $TestInstance->DataExpected
+                                        ];
+                                        $displayStatus  = ($TestsResults["{$Class}@{$Function}"]["status"]? "[\e[32mOK\e[39m]": "[\e[91mERROR\e[39m]");
+                                        echo "{$Class}@{$Function}" . ($debug? " >>> (expected: \"$TestInstance->DataExpected\", provided: \"$TestInstance->DataType\")": " -") . " {$displayStatus}\n";
+                                        ($TestsResults["{$Class}@{$Function}"]["status"] === false && $crash? exit(1): null);
+                                    } catch (\Throwable $e) {
+                                        echo "[\e[91mERROR\e[39m] - PHP: {$e->getMessage()}\n";
                                     }
-                                } catch (\Throwable $e) {
-                                    echo "[\e[91mERROR\e[39m] - PHP: {$e->getMessage()}\n";
+                                } else {
+                                    echo "{$Class}@{$Function} >>> This function is untestable [\e[33mWARNING\e[39m]\n";
                                 }
                             }
                         }
@@ -113,6 +118,19 @@ class Tests {
     }
 
     /**
+     * Check if function is testable
+     * 
+     * @param string $class
+     * @param string $function
+     * 
+     * @return bool
+     */
+    private function isTestable(string $class, string $function): bool {
+        $Annotations = (new \System\Annotations($class, $function))->datas;
+        return (!isset($Annotations["untestable"])? true: false);
+    }
+
+    /**
      * Autoload "Tests" class
      * 
      * @return void
@@ -126,6 +144,21 @@ class Tests {
                 include __path__ . "/src/Tests/System/{$class}.php";
             }
         });
+    }
+
+    /**
+     * Return simple authentication token
+     * 
+     * @return object|null
+     */
+    private function GetAuthToken(): ?object {
+        $dbengine   = new \System\Databases;
+        $tokens     = $dbengine->Query($_ENV["AUTH_TOKEN_DBNAME"], "SELECT * FROM `{$_ENV["AUTH_TOKEN_TABLE_NAME"]}`");
+        foreach ($tokens as $i => &$token) {
+            // Need to add expiration check here
+            break;
+        }
+        return $tokens[$i] ?? null;
     }
 
     /**

@@ -21,7 +21,7 @@ class Update {
                     $path            = __path__ . "/.update/" . basename($repo, ".git");
                     $scanned         = scandir($path);
                     foreach ($scanned as $scan) {
-                        if ($scan == "composer.json" || $scan == ".git" || $scan == ".github" || $scan == "README.md" || $scan == "LICENSE" || $scan == ".gitignore" || $scan == ".env.sample") {
+                        if ($scan == "composer.json" || $scan == ".git" || $scan == ".github" || $scan == "docker" || $scan == "README.md" || $scan == "LICENSE" || $scan == ".gitignore" || $scan == ".env.sample") {
                             $this->DeleteDirectory("{$path}/$scan");
                         }
                     }

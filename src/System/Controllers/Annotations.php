@@ -13,10 +13,10 @@ class Annotations {
     ) {
         $this->Class = (is_object($this->Class)? $this->Class: (new \ReflectionClass($Class)));
         $phpDocs = (!empty($PropertyName)? $this->Class->getProperty($this->PropertyName)->getDocComment(): (!empty($this->FunctionName)? $this->Class->getMethod($this->FunctionName)->getDocComment(): $this->Class->getDocComment()));
-        $phpDocs = (!empty($phpDocs)? explode("*", $phpDocs): []);
+        $phpDocs = (!empty($phpDocs)? explode(PHP_EOL, $phpDocs): []);
         foreach ($phpDocs as $phpDoc) {
             $phpDoc = trim($phpDoc);
-            if (preg_match('/@(.*)/', $phpDoc, $match)) {
+            if (preg_match('/\* @(.*)$/', $phpDoc, $match)) {
                 $match  = $match[1] ?? null;
                 $match  = explode(" ", $match);
                 $var    = $match[0];

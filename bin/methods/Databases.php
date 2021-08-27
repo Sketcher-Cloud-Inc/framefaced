@@ -22,10 +22,10 @@ class Databases {
                 $indexes = $this->ScanObjectsSchematicsAndIndexes();
                 file_put_contents(__path__ . "/src/System/Schematics/indexes.json", json_encode($indexes));
             } elseif (in_array("--falsifications", $Commitments->arguments)) {
-                new \Tests\Falsifications(
+                (new \Tests\Falsifications(
                     (in_array("--entries", $Commitments->arguments)? (int) $Commitments->ArgsValues["--entries"] ?? 10: 10),
                     $this->crash
-                );
+                ))->CreateSqlSamples();
             }
         }
         return;
