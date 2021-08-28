@@ -46,7 +46,7 @@ class Databases {
      * @param  array $parameters
      * @return void
      */
-    public function Exec(string $dbname, string $request, array $parameters = []) {
+    public function Exec(string $dbname, string $request, array $parameters = []): ?\PDOStatement {
         $db = &$this->databases->{$dbname} ?? null;
         if (!empty($db)) {
             $this->dbinit($dbname);
@@ -55,7 +55,9 @@ class Databases {
                 try {
                     $resp->execute($parameters);
                 } catch (\PDOException $e) {
-                    $e = $e;
+                    if (__debug_mode__) {
+                        throw $e;
+                    }
                 }
             } else {
                 throw new \Exception("[DBEngine - System] Database \"{$dbname}\" not found!");
