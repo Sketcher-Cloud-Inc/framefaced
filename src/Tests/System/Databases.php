@@ -70,6 +70,7 @@ class Databases {
                 $resp = $this->dbengine->Exec($db["dbname"], $request, $parameters);
                 if (is_object($resp) && get_class($resp) === "PDOException") {
                     echo "\e[31m  >>> [ERROR] Unable to insert datas in \e[39m\e[34m\"{$db["table"]}\"\e[31m on \e[39m\e[34m\"{$db["dbname"]}\"\e[39m, database engine return: \e[33m" . $resp->getMessage() . "\e[39m\n";
+                    ($this->crash? exit(1): null);
                 } else {
                     echo ">>> [\e[32mOK\e[39m] Data(s) correctly inserted in \e[34m\"{$db["table"]}\"\e[39m on \e[34m\"{$db["dbname"]}\"\e[39m.\n";
                 }

@@ -15,7 +15,7 @@ if (__debug_mode__) {
 }
 
 $databases = json_decode(file_get_contents(__path__ . "/src/conf/databases.json"), false) ?? [];
-foreach ($databases as $db => &$database) {
+foreach ($databases as $db => $database) {
     $dbname             = strtoupper($db);
     $database->access   = (object) [
         "username" => (isset($_ENV["DATABASE_{$dbname}_USER"]) && !empty($_ENV["DATABASE_{$dbname}_USER"])? $_ENV["DATABASE_{$dbname}_USER"]: null),
@@ -23,7 +23,7 @@ foreach ($databases as $db => &$database) {
     ];
     if (!empty($database->access->username)) {
         echo "[\e[94mPROCESSING\e[39m] Database \"{$db}\" creation has been processing.\n";
-        echo shell_exec("mysql -e 'CREATE DATABASE example;' -u{$database->access->username} -p{$database->access->password}");
+        echo shell_exec("mysql -e 'CREATE DATABASE {$database->database};' -u{$database->access->username} -p{$database->access->password}");
     } else {
         echo "[\e[91mERROR\e[39m] Unable to create database \"{$db}\" !";
         exit(1);
