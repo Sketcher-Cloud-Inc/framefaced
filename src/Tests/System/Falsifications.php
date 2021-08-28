@@ -200,7 +200,7 @@ class Falsifications {
      * @return string
      */
     public function datas__RandomValue(string ...$args): string {
-        return $args[rand(0, (count($args) - 1))]; 
+        return trim($args[rand(0, (count($args) - 1))]); 
     }
 
     /**
@@ -211,6 +211,9 @@ class Falsifications {
      * @return string
      */
     public function datas__RandomArray(string ...$array): string {
+        foreach ($array as &$a) {
+            $a = trim($a);
+        }
         return json_encode($array);
     }
 
