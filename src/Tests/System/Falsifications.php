@@ -222,7 +222,7 @@ class Falsifications {
      * 
      * @return string
      */
-    public function datas__RandomNumber(string $min, string $max): string {
+    public function datas__RandomNumber(string $min, string $max): int {
         [ $min, $max ] = [ (int) $min, (int) $max ];
         return (int) round(rand($min, $max), $max); 
     }
@@ -232,8 +232,8 @@ class Falsifications {
      * 
      * @return string
      */
-    public function datas__RandomBool(): string {
-        return (bool) rand(0, 1); 
+    public function datas__RandomBool(string $bool = null): bool {
+        return (!empty($bool) && $bool === "true"? true: (!empty($bool) && $bool === "false"? false: (bool) rand(0, 1))); 
     }
 
     /**

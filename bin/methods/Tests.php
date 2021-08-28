@@ -35,12 +35,16 @@ class Tests {
      * @return void
      */
     private function TriggeringProvidersTests(bool $crash): void {
-        $scanned = scandir(__path__ . "/src/Providers");
-        foreach ($scanned as $scan) {
-            if ($scan !== "." && $scan !== ".." && !is_dir(__path__ . "/src/Providers/{$scan}")) {
-                $scan = basename($scan, ".php");
-                echo shell_exec("php ./bin/console providers control {$scan}" . ($crash? " --CrashOnFailure": null));
+        $scanned = (is_dir(__path__ . "/src/Providers")? scandir(__path__ . "/src/Providers"): []);
+        if (!empty($scanned)) {
+            foreach ($scanned as $scan) {
+                if ($scan !== "." && $scan !== ".." && !is_dir(__path__ . "/src/Providers/{$scan}")) {
+                    $scan = basename($scan, ".php");
+                    echo shell_exec("php ./bin/console providers control {$scan}" . ($crash? " --CrashOnFailure": null));
+                }
             }
+        } else {
+            $this->Commitments->Display("No providers detected.");
         }
         return;
     }
@@ -60,38 +64,43 @@ class Tests {
             $AppSrc         = scandir(__path__ . "/src/App/");
             $Auth           = $this->GetAuthToken() ?? null;
             $TestsResults   = [];
-            foreach ($AppSrc as $App) {
-                if ($App !== "." && $App !== "..") {
-                    if ($_endpoint === null || strcasecmp($App, $_endpoint) == 0) {
-                        $routes = json_decode((file_get_contents(__path__ . "/src/App/{$App}/routes.json") ?? null), false) ?? [];
-                        foreach ($routes as $pattern => $route) {
-                            [$Class, $Function] = explode("@", $route->service);
-                            if ($_function === null || strcasecmp($Function, $_function) == 0) {
-                                $Class = "\\App\\{$App}\\{$Class}";
-                                if ($this->isTestable($Class, $Function)) {
-                                    $TestInstance   = new \Tests\TestInstance($Class, $Function, $this->crash);
-                                    $Response       = new \System\Response($Class, __current_version__, true, $TestInstance);
-                                    try {
-                                        $_Class = new $Class();
-                                        $_Class->{$Function}($Response, $TestInstance->GetRequiredArgs($Class, $Function), $Auth);
-                                        $TestsResults["{$Class}@{$Function}"] = [
-                                            "status"    => $TestInstance->IsExpectedContentPresent(),
-                                            "provided"  => $TestInstance->DataType,
-                                            "expected"  => $TestInstance->DataExpected
-                                        ];
-                                        $displayStatus  = ($TestsResults["{$Class}@{$Function}"]["status"]? "[\e[32mOK\e[39m]": "[\e[91mERROR\e[39m]");
-                                        echo "{$Class}@{$Function}" . ($debug? " >>> (expected: \"$TestInstance->DataExpected\", provided: \"$TestInstance->DataType\")": " -") . " {$displayStatus}\n";
-                                        ($TestsResults["{$Class}@{$Function}"]["status"] === false && $crash? exit(1): null);
-                                    } catch (\Throwable $e) {
-                                        echo "[\e[91mERROR\e[39m] - PHP: {$e->getMessage()}\n";
+            if (!empty($Auth)) {
+                foreach ($AppSrc as $App) {
+                    if ($App !== "." && $App !== "..") {
+                        if ($_endpoint === null || strcasecmp($App, $_endpoint) == 0) {
+                            $routes = json_decode((file_get_contents(__path__ . "/src/App/{$App}/routes.json") ?? null), false) ?? [];
+                            foreach ($routes as $route) {
+                                [$Class, $Function] = explode("@", $route->service);
+                                if ($_function === null || strcasecmp($Function, $_function) == 0) {
+                                    $Class = "\\App\\{$App}\\{$Class}";
+                                    if ($this->isTestable($Class, $Function)) {
+                                        $TestInstance   = new \Tests\TestInstance($Class, $Function, $this->crash);
+                                        $Response       = new \System\Response($Class, __current_version__, true, $TestInstance);
+                                        try {
+                                            $_Class = new $Class();
+                                            $_Class->{$Function}($Response, $TestInstance->GetRequiredArgs($Class, $Function), $Auth);
+                                            $TestsResults["{$Class}@{$Function}"] = [
+                                                "status"    => $TestInstance->IsExpectedContentPresent(),
+                                                "provided"  => $TestInstance->DataType,
+                                                "expected"  => $TestInstance->DataExpected
+                                            ];
+                                            $displayStatus  = ($TestsResults["{$Class}@{$Function}"]["status"]? "[\e[32mOK\e[39m]": "[\e[91mERROR\e[39m]");
+                                            echo "{$Class}@{$Function}" . ($debug? " >>> (expected: \"$TestInstance->DataExpected\", provided: \"$TestInstance->DataType\")": " -") . " {$displayStatus}\n";
+                                            ($TestsResults["{$Class}@{$Function}"]["status"] === false && $crash? exit(1): null);
+                                        } catch (\Throwable $e) {
+                                            echo "[\e[91mERROR\e[39m] - PHP: {$e->getMessage()}\n";
+                                        }
+                                    } else {
+                                        echo "{$Class}@{$Function} >>> This function is untestable [\e[33mWARNING\e[39m]\n";
                                     }
-                                } else {
-                                    echo "{$Class}@{$Function} >>> This function is untestable [\e[33mWARNING\e[39m]\n";
                                 }
                             }
                         }
                     }
                 }
+            } else {
+                $this->Commitments->Display("[\e[91mERROR\e[39m] Enable to load authentication token object from database.");
+                ($this->crash? exit(1): null);
             }
             return;
         }
@@ -154,11 +163,13 @@ class Tests {
     private function GetAuthToken(): ?object {
         $dbengine   = new \System\Databases;
         $tokens     = $dbengine->Query($_ENV["AUTH_TOKEN_DBNAME"], "SELECT * FROM `{$_ENV["AUTH_TOKEN_TABLE_NAME"]}`");
-        foreach ($tokens as $i => &$token) {
+        $Auth       = null;
+        foreach ($tokens as $token) {
             // Need to add expiration check here
+            $Auth = $token;
             break;
         }
-        return $tokens[$i] ?? null;
+        return $Auth;
     }
 
     /**
