@@ -62,7 +62,7 @@ class Databases {
             } else {
                 throw new \Exception("[DBEngine - System] Database \"{$dbname}\" not found!");
             }
-            return (!isset($e)? $resp: $e);
+            return (!isset($e)? $resp: null);
         }
     }
 
