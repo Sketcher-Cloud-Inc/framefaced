@@ -29,7 +29,7 @@ class Databases {
             if (!empty($db->obj)) {
                 $this->AddSelectorsOnRequest($request, $parameters, $selectors);
                 $resp = $db->obj->prepare($request);
-                $resp->execute($parameters);
+                $resp->execute($this->ParseRequestParameters($parameters));
                 $datas = $resp->fetchAll(\PDO::FETCH_ASSOC);
             } else {
                 throw new \Exception("[DBEngine] Database \"{$dbname}\" not found!");
@@ -53,7 +53,7 @@ class Databases {
             if (!empty($db->obj)) {
                 $resp = $db->obj->prepare($request);
                 try {
-                    $resp->execute($parameters);
+                    $resp->execute($this->ParseRequestParameters($parameters));
                 } catch (\PDOException $e) {
                     throw new \Exception("[DBEngine] Unable to execute request: {$e->getMessage()}");
                 }
@@ -64,6 +64,21 @@ class Databases {
         }
     }
 
+    /**
+     * Parse request parameters
+     * 
+     * @param array $parameters
+     * 
+     * @return array
+     */
+    private function ParseRequestParameters(array $parameters = []): array {
+        foreach ($parameters as &$parameter) {
+            $parameter = (is_array($parameter) || is_object($parameter)? json_encode($parameter): $parameter);
+            $parameter = (is_bool($parameter)? (int) $parameter: $parameter);
+        }
+        return $parameters;
+    }
+    
     /**
      * Generate valid selectors from request parameter parsing
      * 
