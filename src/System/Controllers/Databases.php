@@ -55,14 +55,12 @@ class Databases {
                 try {
                     $resp->execute($parameters);
                 } catch (\PDOException $e) {
-                    if (__debug_mode__) {
-                        throw $e;
-                    }
+                    throw new \Exception("[DBEngine] Unable to execute request: {$e->getMessage()}");
                 }
             } else {
-                throw new \Exception("[DBEngine - System] Database \"{$dbname}\" not found!");
+                throw new \Exception("[DBEngine] Database \"{$dbname}\" not found!");
             }
-            return (!isset($e)? $resp: null);
+            return $resp ?? null;
         }
     }
 
