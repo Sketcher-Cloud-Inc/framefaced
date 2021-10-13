@@ -37,7 +37,7 @@ class ObjectsResolver {
                 $PropertyData   = $datas?->{$Property->getName()} ?? null;
                 $NewProperty    = (!$Property->getType()->isBuiltin()? $this->NewResolve($Property->getType(), (!empty($PropertyData)? (gettype($PropertyData) === "string"? json_decode($PropertyData, false): $PropertyData): [])): $PropertyData);
                 $Annotations    = (new \System\Annotations($ReflectedClass, null, $Property->getName()))->datas;
-                $PropertyType   = (!is_object($NewProperty)? $this->ParseMySqlTypes($Property->getValue(new $class())): get_class($NewProperty));
+                $PropertyType   = ($Property->hasDefaultValue()? (!is_object($NewProperty)? $this->ParseMySqlTypes($Property->getValue(new $class())): get_class($NewProperty)): (!empty($Annotations["var"])? ($Annotations["var"] === "bool"? "boolean": $Annotations["var"]): null));
                 $PropertyType   = (!empty($Annotations["var"])? (class_exists($Annotations["var"])? trim($Annotations["var"], "\\"): $PropertyType): $PropertyType);
                 if ($Property->getType()->isBuiltin() && !class_exists($PropertyType)) {
                     $NewProperty = ($PropertyType === "array" && gettype($NewProperty) === "string"? json_decode($NewProperty, false) ?? $NewProperty: $NewProperty);
@@ -46,7 +46,7 @@ class ObjectsResolver {
                     $NewProperty    = $this->NewResolve($PropertyType, (!empty($PropertyData)? (gettype($PropertyData) === "string"? json_decode($PropertyData, false): $PropertyData): []));
                     $PropertyType   = str_replace("Schematics", "DynamicSchematics", $PropertyType);
                 }
-                $dynClass->{$PropertyName} = (gettype($NewProperty) === $PropertyType || is_object($NewProperty) && $PropertyType === get_class($NewProperty)? (!empty($NewProperty) || $NewProperty === false? $NewProperty: null): null);
+                $dynClass->{$PropertyName} = (gettype($NewProperty) === $PropertyType || is_object($NewProperty) && $PropertyType === get_class($NewProperty)? (!empty($NewProperty) || $NewProperty === false? $NewProperty: null): ($NewProperty !== 0? null: 0));
             }
             return $dynClass;
         }
