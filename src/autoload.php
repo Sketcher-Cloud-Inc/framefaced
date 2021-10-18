@@ -26,16 +26,3 @@ if (__debug_mode__) {
     ini_set('display_startup_errors', 1);
     error_reporting(E_ALL);
 }
-
-// Create blank class for "Objects Resolver"
-spl_autoload_register(function($UnfoundClass) {
-    $splited = explode("\\", $UnfoundClass);
-    if (isset($splited[0]) && $splited[0] === "System") {
-        if (isset($splited[1]) && $splited[1] === "DynamicSchematics") {
-            $ClassName = $splited[count($splited)-1];
-            unset($splited[count($splited)-1]);
-            $namespace = implode("\\", $splited);
-            eval("namespace $namespace; class $ClassName {}");
-        }
-    }
-});

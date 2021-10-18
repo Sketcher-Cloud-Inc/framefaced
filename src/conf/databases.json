@@ -1,8 +1,0 @@
-{
-    "example": {
-        "hostname": "localhost",
-        "port": "3306",
-        "database": "example",
-        "charset": "utf8"
-    }
-}
