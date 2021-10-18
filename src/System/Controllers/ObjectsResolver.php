@@ -4,73 +4,50 @@ namespace System;
 
 class ObjectsResolver {
 
-    private array $convert;
-    
-    public function __construct() {
-        $this->convert  = [
-            "int"       => "integer",
-            "bigint"    => "integer",
-            "tinyint"   => "boolean",
-            "float"     => "float",
-            "double"    => "double",
-            "array"     => "array"
-        ];
-    }
-        
     /**
      * Resolve object or class
      *
      * @return object
      */
-    public function NewResolve(string $ObjectName, array | object $datas): ?object {
-        $ObjectName = trim($ObjectName, "\\?/");
-        $datas      = (object) $datas ?? (object) [];
-        $class      = (substr($ObjectName, 0, 18) !== "System\\Schematics\\"? "System\\Schematics\\{$ObjectName}": $ObjectName);
-        $ObjectPath = (__path__ . "/src/" . str_replace("\\", "/", $class) . ".php");
-        $dynClass   = str_replace("\\Schematics", "\\DynamicSchematics", $class);
-        if ($ObjectPath !== false) {
-            $ReflectedClass = new \ReflectionClass($class);
-            $dynClass       = new $dynClass;
-            $Properties     = $ReflectedClass->getProperties() ?? [];
-            foreach ($Properties as $Property) {
-                $PropertyName   = $Property->getName();
-                $PropertyData   = $datas?->{$Property->getName()} ?? null;
-                $NewProperty    = (!$Property->getType()->isBuiltin()? $this->NewResolve($Property->getType(), (!empty($PropertyData)? (gettype($PropertyData) === "string"? json_decode($PropertyData, false): $PropertyData): [])): $PropertyData);
-                $Annotations    = (new \System\Annotations($ReflectedClass, null, $Property->getName()))->datas;
-                $PropertyType   = ($Property->hasDefaultValue()? (!is_object($NewProperty)? $this->ParseMySqlTypes($Property->getValue(new $class())): get_class($NewProperty)): (!empty($Annotations["var"])? ($Annotations["var"] === "bool"? "boolean": $Annotations["var"]): null));
-                $PropertyType   = (!empty($Annotations["var"])? (class_exists($Annotations["var"])? trim($Annotations["var"], "\\"): $PropertyType): $PropertyType);
-                if ($Property->getType()->isBuiltin() && !class_exists($PropertyType)) {
-                    $NewProperty = ($PropertyType === "array" && gettype($NewProperty) === "string"? json_decode($NewProperty, false) ?? $NewProperty: $NewProperty);
-                    settype($NewProperty, $PropertyType);
-                } elseif (class_exists($PropertyType)) {
-                    $NewProperty    = $this->NewResolve($PropertyType, (!empty($PropertyData)? (gettype($PropertyData) === "string"? json_decode($PropertyData, false): $PropertyData): []));
-                    $PropertyType   = str_replace("Schematics", "DynamicSchematics", $PropertyType);
+    public function NewResolve(string | \ReflectionClass $object, array | object $data): ?object {
+        $object = ($object instanceof \ReflectionClass? $object: new \ReflectionClass($object));
+        $data   = (is_array($data)? (object) $data: $data);
+        $output = $object->newInstance();
+        foreach ($object->getProperties() as $property) {
+            $name = $property->getName();
+            $type = $property->getType();
+            $_data = $data->{$name} ?? null;
+            if (!empty($_data)) {
+                if ($type->isBuiltin()) {
+                    $output->{$name} = $data->{$name};
+                } else {
+                    if (method_exists($_data, "jsonSerialize")) {
+                        $_data = $_data->jsonSerialize();
+                        $output->{$name} = $this->NewResolve(trim($type->getName(), "?\\"), $_data);
+                    } else {
+                        $this->NewException($object->getName(), $name, "Unable to serialize object");
+                    }
                 }
-                $dynClass->{$PropertyName} = (gettype($NewProperty) === $PropertyType || is_object($NewProperty) && $PropertyType === get_class($NewProperty)? (!empty($NewProperty) || $NewProperty === false? $NewProperty: null): ($NewProperty !== 0? null: 0));
+            } elseif (!$type->allowsNull()) {
+                $this->NewException($object->getName(), $name, "Missing a non null index");
+            } else {
+                $output->{$name} = null;
             }
-            return $dynClass;
         }
-        return null;
+        return $output;
     }
 
     /**
-     * Convert mysql type to php standard type
+     * Show resolver exception
      *
-     * @param  string $MySqlType
-     * @return string
+     * @param string $object
+     * @param string $index
+     * @param string $msg
+     * @return void
      */
-    private function ParseMySqlTypes(string $typed): string {
-        $typed = explode("|", $typed);
-        foreach ($typed as $type) {
-            preg_match('/\((.*)\)/', $type, $value);
-            if (!empty($value)) {
-                $type = str_replace($value[0], '', $type);
-            }
-            if (isset($this->convert[$type])) {
-                return $this->convert[$type];
-            }
-        }
-        return "string";   
+    private function NewException(string $object, string $index, string $msg): void {
+        $debug = debug_backtrace();
+        $debug = $debug[count($debug) - 1];
+        throw new \Exception("{$msg} ! Object: \"{$object}\", index: \"{$index}\", on {$debug["file"]} at line {$debug["line"]}.");
     }
-
 }

@@ -161,15 +161,10 @@ class Tests {
      * @return object|null
      */
     private function GetAuthToken(): ?object {
-        $dbengine   = new \System\Databases;
-        $tokens     = $dbengine->Query($_ENV["AUTH_TOKEN_DBNAME"], "SELECT * FROM `{$_ENV["AUTH_TOKEN_TABLE_NAME"]}`");
-        $Auth       = null;
-        foreach ($tokens as $token) {
-            // Need to add expiration check here
-            $Auth = $token;
-            break;
-        }
-        return $Auth;
+        $token = \System\Authentications::CreateNewJwtToken("sandbox", []);
+        $jwt = new \Ahc\Jwt\JWT(__path__ . '/certs/authentications.pem', 'RS384');
+        $payload = $jwt->decode($token);
+        return (object) $payload;
     }
 
     /**

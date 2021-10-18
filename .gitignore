@@ -13,8 +13,8 @@
 ## Temporary files
 /tmp/
 
-## Generated SQL files
-/src/Tests/SQL/
+## Generated dump database files
+/src/Tests/dump/
 
 ## Version management (git)
 /.version
@@ -22,3 +22,6 @@
 
 ## Builded project
 /dist/
+
+## Certificates
+/certs/

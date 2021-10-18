@@ -6,7 +6,7 @@ namespace System\Schematics\PhpServer;
  * Example
  * 
  * @database "example"
- * @table "phpserver"
+ * @collection "phpserver"
  * 
  */
 class Example {
@@ -17,30 +17,30 @@ class Example {
      * @source "datas::RandomValue(localhost, local.dev)"
      * @var string
      */
-    public string $SERVER_NAME = "varchar(255)";
+    public string $SERVER_NAME;
 
     /**
      * Server port
      * 
      * @source "datas::RandomValue(8080, 80)"
-     * @var string
+     * @var integer
      */
-    public string $SERVER_PORT = "varchar(255)";
+    public int $SERVER_PORT;
 
     /**
      * Request method
      * 
      * @source "datas::RandomValue(GET, POST, PUT, DELETE)"
-     * @var int
+     * @var string
      */
-    public string $REQUEST_METHOD = "varchar(255)";
+    public string $REQUEST_METHOD;
 
     /**
      * Request time (milliseconds)
      * 
      * @source "datas::RandomNumber(1229286110, 1829286246)"
-     * @var int
+     * @var integer
      */
-    public string $REQUEST_TIME = "bigint(12)";
+    public int $REQUEST_TIME;
 
 }

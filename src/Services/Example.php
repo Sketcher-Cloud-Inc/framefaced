@@ -16,7 +16,12 @@ class Example {
      * @return array
      */
     public function GetExampleDatas(): object {
-        return $this->ObjectsResolver->NewResolve("PhpServer\\Example", $_SERVER);
+        return $this->ObjectsResolver->NewResolve("System\\Schematics\\PhpServer\\Example", [
+            "SERVER_NAME" => "hello-world",
+            "SERVER_PORT" => 1234,
+            "REQUEST_METHOD" => "UNKNOW",
+            "REQUEST_TIME" => 666
+        ]);
     }
 
 }

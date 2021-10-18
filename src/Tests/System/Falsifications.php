@@ -17,42 +17,23 @@ class Falsifications {
     }
 
     /**
-     * Create SQL files
+     * Create json files
      * 
      * @return void
      */
-    public function CreateSqlSamples(): void {
+    public function CreateJsonSamples(): void {
         echo "Starting generation samples datas...\n";
         $datas = $this->GenerateSampleDatas();
-        echo "Exporting generated datasets on SQL files...\n";
+        echo "Exporting generated datasets on JSON files...\n";
         $indexes = json_decode(file_get_contents(__path__ . "/src/System/Schematics/indexes.json"), false);
-        foreach ($indexes as $table => $class) {
+        foreach ($indexes as $db => $class) {
+            [ $database, $collection ] = explode(".", $db);
             if (isset($datas[$class]) && !empty($datas[$class]) && !empty($datas[$class][0])) {
-                $dbname = (new \System\Annotations($class))->datas["database"];
-                (realpath(__path__ . "/src/Tests/SQL/{$dbname}") === false? mkdir(__path__ . "/src/Tests/SQL/{$dbname}", 0777, true): null);
-                $path   = __path__ . "/src/Tests/SQL/{$dbname}/{$table}.sql";
-                $SQL    = "INSERT INTO `{$table}` (";
-                $keys   = array_keys($datas[$class][0]);
-                foreach ($keys as $i => $keyname) {
-                    $SQL .= "`{$keyname}`" . (count($keys) !== ($i + 1)? ", ": ") VALUES");
-                }
-                foreach ($datas[$class] as $i => $data) {
-                    $SQL .= ($i > 0? ", (": " (");
-                    $n = 0;
-                    $keys = array_keys($data);
-                    foreach ($data as $row) {
-                        $row = (is_bool($row)? (int) $row: $row);
-                        $row = (!empty($row) || $row === 0? base64_encode((is_array($row) || is_object($row)? json_encode($row): $row)): null);
-                        $SQL .= (!empty($row) || $row === 0? "\"{$row}\"": "NULL") . (count($keys) !== ($n + 1)? ", ": ")");
-                        $n++;
-                    }
-                }
-                $SQL .= ";";
-                file_put_contents($path, $SQL);
-                $path = realpath($path);
-                echo "[\e[32mOK\e[39m] Data as been generated and saved for \e[92m\"{$class} >>> {$dbname}@{$table}\"\e[39m in \e[94m\"{$path}\"\e[39m.\n";
+                (realpath(__path__ . "/src/Tests/dump/{$database}") === false? mkdir(__path__ . "/src/Tests/dump/{$database}", 0777, true): null);
+                file_put_contents(__path__ . "/src/Tests/dump/{$database}/{$collection}.json", json_encode($datas[$class], JSON_PRETTY_PRINT));
+                
             } else {
-                echo "[\e[91mERROR\e[39m] Missing generated datas for table \"{$table}\" on \"{$class}\"\n";
+                echo "[\e[91mERROR\e[39m] Missing generated datas for table \"{$collection}\" on \"{$class}\"\n";
                 ($this->crash? exit(1): null);
             }
         }
@@ -211,9 +192,6 @@ class Falsifications {
      * @return string
      */
     public function datas__RandomArray(string ...$array): string {
-        foreach ($array as &$a) {
-            $a = trim($a);
-        }
         return json_encode($array);
     }
 

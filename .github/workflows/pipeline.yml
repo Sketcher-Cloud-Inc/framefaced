@@ -16,7 +16,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.0'
-          extensions: bcmath, calendar, Core, ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, mysqli, mysqlnd, openssl, pcre, PDO, pdo_mysql, Phar, Reflection, SimpleXML, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
+          extensions: bcmath, calendar, Core, ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, mongodb, openssl, pcre, PDO, Phar, Reflection, SimpleXML, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
 
       - name: Install composer dependencies
         uses: php-actions/composer@v6
@@ -24,14 +24,10 @@ jobs:
           dev: yes
           version: 2
           php_version: 8.0
+          only_args: --ignore-platform-reqs
 
       - name: Update permissions for runner
         run: sudo chmod -R 777 ./
-
-      - name: Create required databases
-        run: |
-          sudo /etc/init.d/mysql start
-          ./bin/scripts/databases/initializing.sh
 
       - name: Initializing sample databases
         run: |
@@ -45,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: databases
-          path: src/Tests/SQL/*
+          path: src/Tests/dump/*
 
   build:
     name: Compilation (composer)
@@ -58,7 +54,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.0'
-          extensions: bcmath, calendar, Core, ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, mysqli, mysqlnd, openssl, pcre, PDO, pdo_mysql, Phar, Reflection, SimpleXML, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
+          extensions: bcmath, calendar, Core, ctype, curl, date, dom, filter, hash, iconv, json, libxml, mbstring, mongodb, openssl, pcre, PDO, Phar, Reflection, SimpleXML, SPL, standard, tokenizer, xml, xmlreader, xmlwriter, zip, zlib
 
       - name: Install composer dependencies
         uses: php-actions/composer@v6
@@ -71,7 +67,7 @@ jobs:
         uses: php-actions/composer@v6
         with:
           command: dump-autoload
-          only_args: -o --no-dev --no-interaction --classmap-authoritative
+          only_args: --ignore-platform-reqs -o --no-dev --no-interaction --classmap-authoritative
 
       - name: Archive builded application
         uses: actions/upload-artifact@v2

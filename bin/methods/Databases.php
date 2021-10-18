@@ -25,7 +25,7 @@ class Databases {
                 (new \Tests\Falsifications(
                     (in_array("--entries", $Commitments->arguments)? (int) $Commitments->ArgsValues["--entries"] ?? 10: 10),
                     $this->crash
-                ))->CreateSqlSamples();
+                ))->CreateJsonSamples();
             }
         }
         return;
@@ -69,9 +69,9 @@ class Databases {
                             $class = trim($class);
                             $class = "{$namespace}\\{$class}";
                             $Annotation = (new \System\Annotations($class))?->datas ?? [];
-                            if (isset($Annotation["database"]) && !empty($Annotation["database"]) && isset($Annotation["table"]) && !empty($Annotation["table"])) {
-                                echo "- New table found \"{$Annotation["table"]}\" on \"{$class}\"\n";
-                                $indexes = array_merge($indexes, [ "{$Annotation["table"]}" => $class ]);
+                            if (isset($Annotation["database"]) && !empty($Annotation["database"]) && isset($Annotation["collection"]) && !empty($Annotation["collection"])) {
+                                echo "- New collection found \"{$Annotation["collection"]}\" on \"{$class}\"\n";
+                                $indexes = array_merge($indexes, [ "{$Annotation["database"]}.{$Annotation["collection"]}" => $class ]);
                             }
                         }
                     }
@@ -92,9 +92,9 @@ class Databases {
     private function ShowHelper(?\Console\Help &$Helper): bool {
         if (!empty($Helper)) {
             $this->Helper->AddHelper("Manage your databases", strtolower(str_replace(__NAMESPACE__ . "\\", '', __CLASS__)), [
-                "Use --indexes for scan and index all tables on objects",
+                "Use --indexes for scan and index all collections on objects",
                 "Use --falsifications for create fake datas (use --entries to specify how many rows)",
-                "Use --import to import new tables & datas in your databases."
+                "Use --import to import new collections & datas in your databases."
             ]);
             return true;
         }

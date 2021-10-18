@@ -15,8 +15,7 @@ class TestInstance {
         private string $Function,
         private bool $crash = false
     ) {
-        $this->Falsifications   = new \Tests\Falsifications(null, $crash);
-        $this->dbengine         = new \System\Databases;
+        $this->Falsifications = new \Tests\Falsifications(null, $crash);
     }
 
     /**
@@ -46,14 +45,14 @@ class TestInstance {
     public function TracedBack(mixed $dump): void {
         if (is_object($dump)) {
             $this->DataType = get_class($dump) ?? "object";
-            $this->DataType = str_replace("DynamicSchematics", "Schematics", $this->DataType);
+            // $this->DataType = str_replace("DynamicSchematics", "Schematics", $this->DataType);
             return;
         }
         $this->DataType = gettype($dump);
         return;
     }
 
-    /**
+    /**f
      * Retrieve error
      *
      * @param string $ErrorCode
@@ -113,7 +112,7 @@ class TestInstance {
                             $func = explode("->", $func);
                             [ $classname, $parameter ] = [ trim($func[0], "\\"), $func[1] ?? null ];
                             if (in_array($classname, $tables)) {
-                                $value = $this->GetDataFromTable($classname, $parameter);
+                                $value = $this->GetDataFromCollection($classname, $parameter);
                             } else {
                                 $value = $this->Falsifications->GenerateSampleDatas($classname, $parameter);
                             }
@@ -162,11 +161,11 @@ class TestInstance {
      * 
      * @return string|null
      */
-    private function GetDataFromTable(string $classname, string $parameter = null): ?string {
+    private function GetDataFromCollection(string $classname, string $parameter = null): ?string {
         $Annotations    = (new \System\Annotations($classname))->datas;
-        $dbname         =    $Annotations["database"] ?? null;
-        $table          = $Annotations["table"] ?? null;
-        $rows           = $this->dbengine->Query($dbname, "SELECT * FROM `{$table}`");
+        $dbname         = $Annotations["database"] ?? null;
+        $collection     = $Annotations["collection"] ?? null;
+        $rows           = (new \System\Databases($dbname))->find($collection);
         return (isset($rows[0]) && !empty($rows[0])? (!empty($parameter)? $rows[0]?->{$parameter}: $rows[0]): null);
     }
 

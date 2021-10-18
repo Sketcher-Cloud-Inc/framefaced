@@ -1,8 +1,6 @@
 <?php
 namespace Tests;
 
-use Throwable;
-
 class Databases {
 
     private \System\Databases $dbengine;
@@ -10,141 +8,41 @@ class Databases {
     public function __construct(
         private bool $crash
     ){
-        $this->dbengine = new \System\Databases;
-
-        echo "Creation of the database structure and insertion of samples datas... (this operation may take a few seconds)\n - - - - - - - - - - - - - - - -\n";
-        
-        $DatabasesList  = $this->GetAllSchematics();
-        $this->CreateAllTables($DatabasesList);
-
-        echo " - - - - - - - - - - - - - - - -\n\n";
-        $this->InsertDatasInTables($DatabasesList);
-    }
-
-    /**
-     * Create all tables on all databases
-     * 
-     * @param array $DatabasesList
-     * @return void
-     */
-    private function CreateAllTables(array $DatabasesList): void {
-        foreach ($DatabasesList as $db) {
-            $this->dbengine->Exec($db["dbname"], "DROP TABLE IF EXISTS `{$db["table"]}`;");
-            echo "- Create table \e[34m\"{$db["table"]}\"\e[39m on database \e[34m\"{$db["dbname"]}\"\e[39m:\n";
-            $SqlTable = "CREATE TABLE IF NOT EXISTS `{$db["table"]}` (";
-            $i = 0;
-            foreach ($db["columns"] as $column => $types) {
-                echo "  - Create column \e[92m\"{$column}\"\e[39m with \e[94m\"{$types}\"\e[39m.\n";
-                $types = explode("|", $types);
-                $SqlTable .= "`{$column}`";
-                foreach ($types as $type) {
-                    preg_match('/\((.*)\)/', $type, $value);
-                    if (isset($value[0]) && !empty($value[0])) {
-                        $type = ((int) $value[1] === -1? str_replace($value[0], "", $type): $type);
-                        $SqlTable .= " {$type} ";
-                        break;
-                    }
-                }
-                $SqlTable .= (in_array("nullable", $types)? "DEFAULT NULL": "NOT NULL");
-                $SqlTable .= (in_array("primary", $types)? " PRIMARY KEY": null);
-                $SqlTable .= (($i+1) == count($db["columns"])? ") ENGINE=MyISAM DEFAULT CHARSET=utf8": ", ");
-                $i++;
+        echo "Creation of the database structure and insertion of samples datas... (this operation may take a few seconds)\n";
+        foreach ($this->ScanDumpData() as $database => $collections) {
+            echo "\n---------- Switching database to \"$database\" ----------\n";
+            $this->dbengine = new \System\Databases($database); 
+            foreach ($collections as $collection => $data) {
+                echo "Deletion of existing collection data in \"$collection\"...\n";
+                $this->dbengine->deleteMany($collection, [], $this->dbengine->countDocuments($collection));
+                echo "Inserting dump data in \"$collection\"...\n";
+                $this->dbengine->insertMany($collection, $data);
             }
-            $this->dbengine->Exec($db["dbname"], $SqlTable);
-            echo "\n";
         }
-        return;
     }
 
     /**
-     * Insert samples datas in databases
-     * 
-     * @param array $DatabasesList
-     * @return void
+     * Parse generated json dump
+     *
+     * @param string|null $subdir
+     * @return array
      */
-    private function InsertDatasInTables(array $DatabasesList): void {
-        foreach ($DatabasesList as $db) {
-            $path = __path__ . "/src/Tests/SQL/{$db["dbname"]}/{$db["table"]}.sql";
-            if (file_exists($path)) {
-                [$request, $parameters] = $this->ParseSqlFile($path);
-                $resp = $this->dbengine->Exec($db["dbname"], $request, $parameters);
-                if (is_object($resp) && get_class($resp) === "PDOException") {
-                    echo "\e[31m  >>> [ERROR] Unable to insert datas in \e[39m\e[34m\"{$db["table"]}\"\e[31m on \e[39m\e[34m\"{$db["dbname"]}\"\e[39m, database engine return: \e[33m" . $resp->getMessage() . "\e[39m\n";
-                    ($this->crash? exit(1): null);
+    private function ScanDumpData(?string $subdir = null): array {
+        $dump = [];
+        $path = __path__ . "/src/Tests/dump/{$subdir}";
+        foreach (scandir($path) as $scan) {
+            if ($scan !== "." && $scan !== "..") {
+                if (is_dir("{$path}/{$scan}")) {
+                    $dump = array_merge($dump, $this->ScanDumpData($scan));
                 } else {
-                    echo ">>> [\e[32mOK\e[39m] Data(s) correctly inserted in \e[34m\"{$db["table"]}\"\e[39m on \e[34m\"{$db["dbname"]}\"\e[39m.\n";
-                }
-            } else {
-                echo "[\e[91mERROR\e[39m] Unable to locate sql file \"{$path}\".\n";
-                ($this->crash? exit(1): null);
-            }
-        }
-        return;
-    }
-
-    /**
-     * Parse SQL file for dbengine
-     * 
-     * @param string $path
-     * 
-     * @return array
-     */
-    private function ParseSqlFile(string $path): array {
-        $SQL        = file_get_contents($path);
-        $parameters = [];
-        [ $structure, $values ] = explode(" VALUES ", $SQL);
-        $request    = "{$structure} VALUES ";
-        $values = trim($values ?? null, ";");
-        $values = explode("),", $values);
-
-        preg_match('/\((.*)\)/', $structure, $structures);
-        $structures = explode(",", $structures[1] ?? null);
-        foreach ($structures as &$structure) {
-            $structure = trim(trim($structure), "`");
-        }
-
-        foreach ($values as $i => $value) {
-            $value      = trim(trim($value, "( )"));
-            $columns    = explode(",", $value);
-            $request .= ($i > 0? ", ": null) . "(";
-            foreach ($columns as $n => $column) {
-                $column = trim(trim($column), "\"");
-                $column = ($column !== "NULL"? base64_decode($column): null);
-                $request .= ":datas_{$i}_{$structures[$n]}" . ($n < (count($columns) - 1)? ", ": ")");
-                $parameters["datas_{$i}_{$structures[$n]}"] = $column;
-            }
-        }
-        return [$request, $parameters];
-    }
-
-    /**
-     * Return all schematics
-     * 
-     * @return array
-     */
-    private function GetAllSchematics(): array {
-        $db         = [];
-        $indexes    = json_decode(file_get_contents(__path__ . "/src/System/Schematics/indexes.json"), true) ?? [];
-        foreach ($indexes as $table => $index) {
-            try {
-                $ReflectedClass = new \ReflectionClass($index);
-                $Annotations    = ((new \System\Annotations($ReflectedClass))->datas);
-            } catch (Throwable $e) {
-                $ReflectedClass = null;
-                echo ">>> [\e[91mERROR\e[39m] \e[33m{$e->getMessage()}\e[39m on \e[34m\"{$index}\"\e[39m\n";
-            }
-            if (isset($Annotations["database"]) && !empty($Annotations["database"])) {
-                $db[$table]["dbname"]   = $Annotations["database"];
-                $db[$table]["table"]    = $Annotations["table"];
-                $Properties             = (!empty($ReflectedClass)? $ReflectedClass->getProperties() ?? []: []);
-                foreach ($Properties as $Property) {
-                    $value = ($Property->getType()->isBuiltin()? $Property->getValue(new $index): new ($Property->getType()->getName()));
-                    $value = (!is_object($value)? $value: "longtext(-1)");
-                    $db[$table]["columns"][$Property->getName()] = $value . ($Property->getType()->allowsNull() === true? "|nullable": null);
+                    $db = explode("/", str_replace("\\", "/", $path));
+                    [ $database, $collection ] = [ $db[count($db) - 1], basename($scan, ".json") ]; 
+                    $data = json_decode(file_get_contents("{$path}/{$scan}"), false);
+                    $dump[$database][$collection] = $data;
                 }
             }
         }
-        return $db;
+        return $dump;
     }
 
 }

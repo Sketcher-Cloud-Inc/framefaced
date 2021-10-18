@@ -19,7 +19,9 @@
     },
     "require": {
         "symfony/uid": "^5.3",
-        "symfony/dotenv": "^5.3"
+        "symfony/dotenv": "^5.3",
+        "mongodb/mongodb": "^1.8",
+        "adhocore/jwt": "^1.1"
     },
     "require-dev": {
         "symfony/var-dumper": "^5.3",

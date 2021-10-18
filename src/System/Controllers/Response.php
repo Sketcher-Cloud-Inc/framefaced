@@ -13,7 +13,7 @@ class Response {
         private ?\Tests\TestInstance $TestInstance = null
     ){
         // Check current API version
-        if (__current_version__ !== $this->Version) {
+        if ($this->Version !== null && __current_version__ !== $this->Version) {
             $this->Throw("VERSION_CONTROL_FAILURE");
             exit;
         }
