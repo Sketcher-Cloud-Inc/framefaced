@@ -4,27 +4,51 @@ namespace System;
 
 class Authentications {
 
-    public ?object $Rdy;
-    private \System\Databases $dbengine;
+    public object $Rdy;
     private bool $Allowed = false;
 
     public function __construct(
         private object $Routed,
-        private ?string $Token = null
+        private ?string $token = null
     ) {
-        if (!$Routed->auth) {
-            $this->Allowed = true;
-        } elseif (!empty($Token)) {
-            $this->dbengine = new \System\Databases;
-            $this->Rdy      = $this->dbengine->Query($_ENV["AUTH_TOKEN_DBNAME"], "SELECT * FROM `{$_ENV["AUTH_TOKEN_TABLE_NAME"]}`;", [], [
-                "token" => $this->Token
-            ])[0] ?? null;
-            if (!empty($this->Rdy)) {
-                if (empty($this->Rdy->permissions) || $this->CheckPermissions()) {
+        if (!empty($token)) {
+            try {
+                $jwt = new \Ahc\Jwt\JWT(__path__ . '/certs/authentications.pem', 'RS384');
+                $payload = $jwt->decode($token);
+                if ($this->CheckPermissions($payload["permissions"])) {
+                    $this->Rdy = (object) $payload;
                     $this->Allowed = true;
                 }
+            } catch (\Ahc\Jwt\JWTException $e) {
+                $failure = (object) [
+                    "codename" => "ACCESS_ATTEMPT_FAILURE",
+                    "name" => "Access attempt failure",
+                    "message" => $e->getMessage(),
+                    "code" => 403
+                ];
+                (new \System\Logs)->ThrowTyped(null, 2, $failure);
+                (new \System\Response(__CLASS__, null))->Return($failure, $failure->code);
+                exit;
             }
+        } elseif (empty($Routed->auth) || $Routed->auth === false) {
+            $this->Allowed = true;
         }
+    }
+
+    /**
+     * Create a new JWT token
+     *
+     * @param string $access
+     * @param array $permissions
+     * @return string
+     */
+    public static function CreateNewJwtToken(string $access, array $permissions = []): string {
+        $jwt = new \Ahc\Jwt\JWT(__path__ . '/certs/authentications.pem', 'RS384');
+        return $jwt->encode([
+            'access'        => $access,
+            'permissions'   => $permissions,
+            "exp"           => time() + $_ENV["JWT_EXPIRATION_SECONDS"] ?? 86400
+        ]);
     }
 
     /**
@@ -41,11 +65,13 @@ class Authentications {
      * 
      * @return bool
      */
-    private function CheckPermissions(): bool {
-        if (in_array("{$_SERVER["REQUEST_METHOD"]}@{$this->Routed->Pattern}", $this->Rdy->permissions) || in_array("*@{$this->Routed->Pattern}", $this->Rdy->permissions)) {
-            return true;
+    private function CheckPermissions(array $permissions): bool {
+        if (!empty($permissions)) {
+            if (in_array("{$_SERVER["REQUEST_METHOD"]}@{$this->Routed->Pattern}", $permissions) || in_array("*@{$this->Routed->Pattern}", $permissions)) {
+                return true;
+            }
+            return false;
         }
-        return false;
+        return true;
     }
-
 }
