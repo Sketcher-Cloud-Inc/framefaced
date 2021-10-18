@@ -62,12 +62,13 @@ jobs:
           dev: no
           version: 2
           php_version: 8.0
+          only_args: --ignore-platform-reqs
 
       - name: Dump autoload
         uses: php-actions/composer@v6
         with:
           command: dump-autoload
-          only_args: --ignore-platform-reqs -o --no-dev --no-interaction --classmap-authoritative
+          only_args: -o --no-dev --no-interaction --classmap-authoritative
 
       - name: Archive builded application
         uses: actions/upload-artifact@v2
